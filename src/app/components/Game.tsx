@@ -212,20 +212,19 @@ export default function Game() {
     setPhase('language');
   }, []);
 
-  const handleGuess = useCallback((value: string) => {
-    setInput(value);
-    if (value.trim().length < 2) return;
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.trim().length < 2) return;
 
     for (const pokemon of POKEMON) {
       if (guessed.has(pokemon.id)) continue;
       const target = pokemon.names[language] || pokemon.names.en;
-      if (fuzzyMatch(value.trim(), target)) {
+      if (fuzzyMatch(input.trim(), target)) {
         const newGuessed = new Set([...guessed, pokemon.id]);
         setGuessed(newGuessed);
         setInput('');
         setFlash(pokemon.id);
         setTimeout(() => setFlash(null), 1200);
-        // Check for completion
         if (newGuessed.size === 151) {
           setElapsed(elapsedBeforePause + (Date.now() - startTime));
           setPhase('complete');
@@ -233,26 +232,11 @@ export default function Game() {
         return;
       }
     }
-  }, [guessed, language, elapsedBeforePause, startTime]);
-
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim().length < 2) return;
-
-    // Check if there's a match
-    for (const pokemon of POKEMON) {
-      if (guessed.has(pokemon.id)) continue;
-      const target = pokemon.names[language] || pokemon.names.en;
-      if (fuzzyMatch(input.trim(), target)) {
-        handleGuess(input);
-        return;
-      }
-    }
 
     // No match - shake
     setShake(true);
     setTimeout(() => setShake(false), 500);
-  }, [input, guessed, language, handleGuess]);
+  }, [input, guessed, language, elapsedBeforePause, startTime]);
 
   // ─── Language Selection ────────────────────────────────────────
   if (phase === 'language') {
@@ -320,36 +304,44 @@ export default function Game() {
             {formatTime(elapsed)}
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <form onSubmit={handleSubmit} className="relative">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={e => handleGuess(e.target.value)}
-              placeholder="Type a name…"
-              autoFocus
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-              className={`w-32 sm:w-48 px-3 py-1 rounded bg-zinc-800 border text-sm
-                         placeholder:text-zinc-600 focus:outline-none focus:border-red-400/50
-                         transition-all ${shake ? 'animate-shake border-red-500' : 'border-zinc-700'}`}
-            />
-          </form>
-          <button
-            onClick={() => setShowMenu(m => !m)}
-            className="p-1.5 rounded hover:bg-zinc-700 transition-colors"
-            aria-label="Menu"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
-        </div>
+        <button
+          onClick={() => setShowMenu(m => !m)}
+          className="p-1.5 rounded hover:bg-zinc-700 transition-colors"
+          aria-label="Menu"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
       </header>
+
+      {/* Input bar */}
+      <div className="flex justify-center px-3 py-2 bg-[#16213e]/80 border-b border-zinc-800 shrink-0 z-20">
+        <form onSubmit={handleSubmit} className="w-full max-w-md flex gap-2">
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="Enter a Pokémon name and press Enter…"
+            autoFocus
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            className={`flex-1 px-4 py-2 rounded-lg bg-zinc-800 border text-base
+                       placeholder:text-zinc-600 focus:outline-none focus:border-red-400/60 focus:ring-1 focus:ring-red-400/30
+                       transition-all ${shake ? 'animate-shake border-red-500' : 'border-zinc-700'}`}
+          />
+          <button
+            type="submit"
+            className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 active:scale-95 text-sm font-medium transition-all shrink-0"
+          >
+            Guess
+          </button>
+        </form>
+      </div>
 
       {/* Menu overlay */}
       {showMenu && (
