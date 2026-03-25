@@ -305,7 +305,7 @@ export default function Game() {
 
   // ─── Playing ───────────────────────────────────────────────────
   return (
-    <div className="relative bg-[#1a1a2e] text-white select-none" style={{ height: '100svh', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <div className="fixed inset-0 bg-[#1a1a2e] text-white select-none" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
 
       {/* Fixed header — stays put during pinch-zoom */}
       <div ref={headerRef} className="fixed top-0 left-0 right-0 z-20 bg-[#16213e]">
