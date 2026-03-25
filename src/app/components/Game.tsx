@@ -466,10 +466,10 @@ function PokemonGrid({
   const rows = Math.ceil(151 / cols);
 
   return (
-    <div className="flex-1 overflow-hidden p-1">
+    <div className="flex-1 overflow-auto p-1">
       <div
         ref={gridRef}
-        className="grid w-full h-full gap-px"
+        className="grid w-full min-h-full gap-px"
         style={{
           gridTemplateColumns: `repeat(${cols}, 1fr)`,
           gridTemplateRows: `repeat(${rows}, 1fr)`,
@@ -516,15 +516,15 @@ const PokemonCell = ({
 
   return (
     <div
-      className={`rounded-sm flex flex-col items-center justify-center overflow-hidden
-                  transition-all duration-300 relative
+      className={`rounded-sm flex flex-col items-center justify-center
+                  transition-all duration-300 relative min-h-0
                   ${isFlashing ? 'animate-reveal bg-yellow-500/20 ring-1 ring-yellow-400/40' : 'bg-zinc-800/60'}`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={getSpriteUrl(pokemon.id)}
         alt={name}
-        className="pixelated w-3/4 max-w-[64px] max-h-[80%] aspect-square object-contain"
+        className="pixelated w-3/4 max-w-[64px] aspect-square object-contain shrink-0"
         loading="lazy"
         draggable={false}
       />
