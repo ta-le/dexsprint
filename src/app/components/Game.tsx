@@ -510,14 +510,12 @@ function PokemonGrid({
   const rows = Math.ceil(151 / cols);
 
   return (
-    <div ref={containerRef} className={`w-full h-full ${showDetail ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+    <div ref={containerRef} className="w-full h-full overflow-hidden">
       <div
         className="grid w-full"
         style={{
-          ...(showDetail
-            ? { minHeight: '100%', gridTemplateRows: `repeat(${rows}, minmax(60px, 1fr))`, paddingBottom: '24px' }
-            : { height: 'calc(100% - 4px)', gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))` }
-          ),
+          height: 'calc(100% - 4px)',
+          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
           gridTemplateColumns: `repeat(${cols}, 1fr)`,
           gap: '1px',
         }}
@@ -564,37 +562,28 @@ const PokemonCell = ({
   return (
     <div
       style={{ containerType: 'inline-size' }}
-      className={`rounded-sm flex flex-col items-center justify-center overflow-hidden
-                  transition-all duration-300 relative min-h-0
+      className={`rounded-sm overflow-hidden relative min-h-0
+                  transition-all duration-300
                   ${isFlashing ? 'animate-reveal bg-yellow-500/20 ring-1 ring-yellow-400/40' : 'bg-zinc-800/60'}`}
     >
+      {/* Sprite fills the entire cell */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={getSpriteUrl(pokemon.id)}
         alt={name}
-        className="pixelated max-w-[80%] max-h-[70%] object-contain shrink-0"
+        className="pixelated absolute inset-0 w-full h-full object-contain"
         loading="lazy"
         draggable={false}
       />
+      {/* Text overlay — sits on top of the sprite, no layout shift */}
       {showDetail && (
-        <div className="flex flex-col items-center gap-0 px-0.5 pb-0.5 w-full">
-          <span style={{ fontSize: 'clamp(5.5px, 13cqi, 10px)' }} className="text-zinc-500 leading-none">
+        <div className="absolute bottom-0 left-0 right-0 bg-zinc-900/80 flex flex-col items-center px-0.5 pt-0.5 pb-0.5">
+          <span style={{ fontSize: 'clamp(5px, 12cqi, 9px)' }} className="text-zinc-400 leading-none">
             #{String(pokemon.id).padStart(3, '0')}
           </span>
-          <span style={{ fontSize: 'clamp(6.5px, 15cqi, 12px)' }} className="font-semibold leading-tight text-center truncate w-full">
+          <span style={{ fontSize: 'clamp(6px, 14cqi, 11px)' }} className="font-semibold leading-tight text-center truncate w-full text-center">
             {name}
           </span>
-          <div className="flex gap-0.5 mt-0.5">
-            {pokemon.types.map(t => (
-              <span
-                key={t}
-                style={{ fontSize: 'clamp(4.5px, 10cqi, 8px)', backgroundColor: TYPE_COLORS[t] + '40', color: TYPE_COLORS[t] }}
-                className="px-1 py-px rounded-sm leading-none font-medium"
-              >
-                {t}
-              </span>
-            ))}
-          </div>
         </div>
       )}
     </div>
