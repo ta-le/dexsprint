@@ -163,6 +163,7 @@ export default function Game() {
   const [showAbout, setShowAbout] = useState(false);
   const [showRestart, setShowRestart] = useState(false);
   const [shake, setShake] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const [forceDetail, setForceDetail] = useState<boolean>(() => loadState()?.forceDetail ?? false);
   const inputRef = useRef<HTMLInputElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -289,7 +290,18 @@ export default function Game() {
       return;
     }
 
-    // No match or ambiguous input — shake
+    // No match or ambiguous input — check if already guessed, then shake
+    for (const pokemon of POKEMON) {
+      if (!guessed.has(pokemon.id)) continue;
+      const target = pokemon.names[language] || pokemon.names.en;
+      if (fuzzyMatchDist(input.trim(), target) !== null) {
+        const name = pokemon.names[language] || pokemon.names.en;
+        setToast(`Already found: ${name}!`);
+        setTimeout(() => setToast(null), 2500);
+        setInput('');
+        return;
+      }
+    }
     setShake(true);
     setTimeout(() => setShake(false), 500);
   }, [input, guessed, language, elapsedBeforePause, startTime]);
@@ -562,6 +574,13 @@ export default function Game() {
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Already-guessed toast */}
+      {toast && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-zinc-700/90 border border-zinc-600 text-sm text-white whitespace-nowrap shadow-lg pointer-events-none">
+          {toast}
         </div>
       )}
     </div>
