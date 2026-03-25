@@ -293,7 +293,7 @@ export default function Game() {
 
   // ─── Playing ───────────────────────────────────────────────────
   return (
-    <div className="flex flex-col bg-[#1a1a2e] text-white overflow-hidden select-none" style={{ height: '100dvh', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <div className="flex flex-col bg-[#1a1a2e] text-white overflow-hidden select-none" style={{ height: '100svh', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {/* Header bar */}
       <header className="flex items-center justify-between px-2 sm:px-4 py-1.5 bg-[#16213e] border-b border-zinc-800 shrink-0 z-20">
         <div className="flex items-center gap-2 sm:gap-4">
@@ -481,13 +481,15 @@ function PokemonGrid({
   const rows = Math.ceil(151 / cols);
 
   return (
-    <div ref={containerRef} className="flex-1 min-h-0 overflow-hidden">
+    <div ref={containerRef} className={`flex-1 min-h-0 ${showDetail ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       <div
         className="grid w-full"
         style={{
-          height: 'calc(100% - 4px)',
+          ...(showDetail
+            ? { minHeight: '100%', gridTemplateRows: `repeat(${rows}, minmax(60px, 1fr))`, paddingBottom: '24px' }
+            : { height: 'calc(100% - 4px)', gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))` }
+          ),
           gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
           gap: '1px',
         }}
       >
