@@ -290,7 +290,7 @@ export default function Game() {
 
   // ─── Playing ───────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-screen bg-[#1a1a2e] text-white overflow-hidden select-none">
+    <div className="flex flex-col bg-[#1a1a2e] text-white overflow-hidden select-none" style={{ height: '100dvh', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {/* Header bar */}
       <header className="flex items-center justify-between px-2 sm:px-4 py-1.5 bg-[#16213e] border-b border-zinc-800 shrink-0 z-20">
         <div className="flex items-center gap-2 sm:gap-4">
@@ -443,20 +443,19 @@ function PokemonGrid({
   showDetail: boolean;
   flash: number | null;
 }) {
-  const gridRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [cols, setCols] = useState(15);
 
   useEffect(() => {
     function calc() {
-      if (!gridRef.current) return;
-      const parent = gridRef.current.parentElement;
-      if (!parent) return;
-      const w = parent.clientWidth;
-      const h = parent.clientHeight;
+      const el = containerRef.current;
+      if (!el) return;
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      if (w === 0 || h === 0) return;
       const aspect = w / h;
-      // Solve: cols * rows >= 151, cols/rows ≈ aspect
-      const c = Math.max(5, Math.round(Math.sqrt(151 * aspect)));
-      setCols(c);
+      const cols = Math.max(5, Math.round(Math.sqrt(151 * aspect)));
+      setCols(cols);
     }
     calc();
     window.addEventListener('resize', calc);
@@ -466,13 +465,14 @@ function PokemonGrid({
   const rows = Math.ceil(151 / cols);
 
   return (
-    <div className="flex-1 overflow-auto p-1">
+    <div ref={containerRef} className="flex-1 min-h-0 overflow-hidden">
       <div
-        ref={gridRef}
-        className="grid w-full min-h-full gap-px"
+        className="grid w-full"
         style={{
+          height: 'calc(100% - 4px)',
           gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gridTemplateRows: `repeat(${rows}, 1fr)`,
+          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+          gap: '1px',
         }}
       >
         {POKEMON.map(pokemon => (
@@ -508,7 +508,7 @@ const PokemonCell = ({
 
   if (!revealed) {
     return (
-      <div className="rounded-sm bg-zinc-800/40 flex items-center justify-center">
+      <div className="rounded-sm bg-zinc-800/40 flex items-center justify-center overflow-hidden min-h-0">
         <span className="text-zinc-700 text-[8px] select-none">?</span>
       </div>
     );
@@ -516,7 +516,7 @@ const PokemonCell = ({
 
   return (
     <div
-      className={`rounded-sm flex flex-col items-center justify-center
+      className={`rounded-sm flex flex-col items-center justify-center overflow-hidden
                   transition-all duration-300 relative min-h-0
                   ${isFlashing ? 'animate-reveal bg-yellow-500/20 ring-1 ring-yellow-400/40' : 'bg-zinc-800/60'}`}
     >
@@ -524,7 +524,7 @@ const PokemonCell = ({
       <img
         src={getSpriteUrl(pokemon.id)}
         alt={name}
-        className="pixelated w-3/4 max-w-[64px] aspect-square object-contain shrink-0"
+        className="pixelated max-w-[80%] max-h-[70%] object-contain shrink-0"
         loading="lazy"
         draggable={false}
       />
