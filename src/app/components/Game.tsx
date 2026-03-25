@@ -532,6 +532,7 @@ const PokemonCell = ({
 
   return (
     <div
+      style={{ containerType: 'inline-size' }}
       className={`rounded-sm flex flex-col items-center justify-center overflow-hidden
                   transition-all duration-300 relative min-h-0
                   ${isFlashing ? 'animate-reveal bg-yellow-500/20 ring-1 ring-yellow-400/40' : 'bg-zinc-800/60'}`}
@@ -546,18 +547,18 @@ const PokemonCell = ({
       />
       {showDetail && (
         <div className="flex flex-col items-center gap-0 px-0.5 pb-0.5 w-full">
-          <span className="text-[7px] text-zinc-500 leading-none">
+          <span style={{ fontSize: 'clamp(5.5px, 13cqi, 10px)' }} className="text-zinc-500 leading-none">
             #{String(pokemon.id).padStart(3, '0')}
           </span>
-          <span className="text-[8px] font-semibold leading-tight text-center truncate w-full">
+          <span style={{ fontSize: 'clamp(6.5px, 15cqi, 12px)' }} className="font-semibold leading-tight text-center truncate w-full">
             {name}
           </span>
           <div className="flex gap-0.5 mt-0.5">
             {pokemon.types.map(t => (
               <span
                 key={t}
-                className="text-[6px] px-1 py-px rounded-sm leading-none font-medium"
-                style={{ backgroundColor: TYPE_COLORS[t] + '40', color: TYPE_COLORS[t] }}
+                style={{ fontSize: 'clamp(4.5px, 10cqi, 8px)', backgroundColor: TYPE_COLORS[t] + '40', color: TYPE_COLORS[t] }}
+                className="px-1 py-px rounded-sm leading-none font-medium"
               >
                 {t}
               </span>
