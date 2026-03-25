@@ -29,8 +29,7 @@ function levenshtein(a: string, b: string): number {
 function normalize(s: string): string {
   return s
     .toLowerCase()
-    .replace(/♀/g, 'f')
-    .replace(/♂/g, 'm')
+    .replace(/[♀♂]/g, '')
     .replace(/[^a-z0-9\u3000-\u9fff\uac00-\ud7af\u3040-\u309f\u30a0-\u30ff]/g, '');
 }
 
