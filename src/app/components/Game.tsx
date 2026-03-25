@@ -34,13 +34,14 @@ function normalize(s: string): string {
     .replace(/[^a-z0-9\u3000-\u9fff\uac00-\ud7af\u3040-\u309f\u30a0-\u30ff]/g, '');
 }
 
-function fuzzyMatch(input: string, target: string, threshold = 0.1): boolean {
+function fuzzyMatchDist(input: string, target: string, threshold = 0.1): number | null {
   const a = normalize(input);
   const b = normalize(target);
-  if (a === b) return true;
-  if (a.length === 0) return false;
+  if (a === b) return 0;
+  if (a.length === 0) return null;
   const maxDist = Math.max(1, Math.floor(b.length * threshold));
-  return levenshtein(a, b) <= maxDist;
+  const dist = levenshtein(a, b);
+  return dist <= maxDist ? dist : null;
 }
 
 // ─── Storage ───────────────────────────────────────────────────────
@@ -254,24 +255,41 @@ export default function Game() {
     e.preventDefault();
     if (input.trim().length < 2) return;
 
+    // Collect every unguessed Pokémon that matches within the fuzzy threshold
+    const matches: { pokemon: Pokemon; dist: number }[] = [];
     for (const pokemon of POKEMON) {
       if (guessed.has(pokemon.id)) continue;
       const target = pokemon.names[language] || pokemon.names.en;
-      if (fuzzyMatch(input.trim(), target)) {
-        const newGuessed = new Set([...guessed, pokemon.id]);
-        setGuessed(newGuessed);
-        setInput('');
-        setFlash(pokemon.id);
-        setTimeout(() => setFlash(null), 1200);
-        if (newGuessed.size === 151) {
-          setElapsed(elapsedBeforePause + (Date.now() - startTime));
-          setPhase('complete');
-        }
-        return;
-      }
+      const dist = fuzzyMatchDist(input.trim(), target);
+      if (dist !== null) matches.push({ pokemon, dist });
     }
 
-    // No match - shake
+    let chosen: Pokemon | null = null;
+    if (matches.length === 1) {
+      // Unambiguous — accept regardless of distance
+      chosen = matches[0].pokemon;
+    } else if (matches.length > 1) {
+      // Multiple candidates — only accept a unique exact match to avoid
+      // e.g. "Nidorino" accidentally revealing "Nidorina"
+      const exact = matches.filter(m => m.dist === 0);
+      if (exact.length === 1) chosen = exact[0].pokemon;
+      // else: ambiguous — fall through to shake
+    }
+
+    if (chosen) {
+      const newGuessed = new Set([...guessed, chosen.id]);
+      setGuessed(newGuessed);
+      setInput('');
+      setFlash(chosen.id);
+      setTimeout(() => setFlash(null), 1200);
+      if (newGuessed.size === 151) {
+        setElapsed(elapsedBeforePause + (Date.now() - startTime));
+        setPhase('complete');
+      }
+      return;
+    }
+
+    // No match or ambiguous input — shake
     setShake(true);
     setTimeout(() => setShake(false), 500);
   }, [input, guessed, language, elapsedBeforePause, startTime]);
