@@ -270,11 +270,18 @@ export default function Game() {
       // Unambiguous — accept regardless of distance
       chosen = matches[0].pokemon;
     } else if (matches.length > 1) {
-      // Multiple candidates — only accept a unique exact match to avoid
+      // Multiple candidates — only accept exact match(es) to avoid
       // e.g. "Nidorino" accidentally revealing "Nidorina"
       const exact = matches.filter(m => m.dist === 0);
-      if (exact.length === 1) chosen = exact[0].pokemon;
-      // else: ambiguous — fall through to shake
+      if (exact.length === 1) {
+        chosen = exact[0].pokemon;
+      } else if (exact.length > 1) {
+        // Multiple Pokémon share the exact same name in this language
+        // (e.g. Nidoran♀ and Nidoran♂ in languages without gender suffix).
+        // Reveal the lowest Pokédex-number one first.
+        chosen = exact[0].pokemon;
+      }
+      // else: only fuzzy matches, no exact → ambiguous → fall through to shake
     }
 
     if (chosen) {
