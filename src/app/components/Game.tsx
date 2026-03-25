@@ -454,7 +454,7 @@ export default function Game() {
               </a>
             </div>
             <a
-              href="https://www.paypal.com/donate?business=ta.lepham16%40gmail.com&currency_code=USD"
+              href={`https://www.paypal.com/donate?business=ta.lepham16%40gmail.com&currency_code=${{ en: 'USD', fr: 'EUR', de: 'EUR', es: 'EUR', it: 'EUR', ja: 'JPY' }[language]}`}
               target="_blank"
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
