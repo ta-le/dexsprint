@@ -167,6 +167,7 @@ export default function Game() {
   const headerRef = useRef<HTMLDivElement>(null);
   const [headerH, setHeaderH] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [mobileH, setMobileH] = useState(0);
   const zoom = useZoomLevel();
 
   const showDetail = zoom >= 1.8 || forceDetail;
@@ -179,6 +180,18 @@ export default function Game() {
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
+
+  // Track visual viewport height on mobile so the container shrinks with the keyboard
+  useEffect(() => {
+    if (!isMobile) return;
+    const vv = window.visualViewport;
+    if (!vv) { setMobileH(window.innerHeight); return; }
+    const update = () => setMobileH(vv.height);
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update); };
+  }, [isMobile]);
 
   // Measure fixed header height (re-run when phase changes so ref is populated)
   useEffect(() => {
@@ -315,7 +328,10 @@ export default function Game() {
 
   // ─── Playing ───────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 bg-[#1a1a2e] text-white select-none">
+    <div
+      className="fixed top-0 left-0 right-0 bg-[#1a1a2e] text-white select-none overflow-hidden"
+      style={isMobile && mobileH ? { height: mobileH } : { bottom: 0 }}
+    >
 
       {/* Fixed header — stays put during pinch-zoom */}
       <div ref={headerRef} className="fixed top-0 left-0 right-0 z-20 bg-[#16213e]">
@@ -498,10 +514,10 @@ export default function Game() {
         />
       </div>
 
-      {/* Mobile bottom input bar — fixed above the software keyboard */}
+      {/* Mobile bottom input bar — absolute within the visual-viewport-sized container */}
       {isMobile && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-20 bg-[#16213e] border-t border-zinc-800"
+          className="absolute bottom-0 left-0 right-0 z-20 bg-[#16213e] border-t border-zinc-800"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
           <div className="flex justify-center px-3 py-2">
