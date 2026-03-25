@@ -164,9 +164,21 @@ export default function Game() {
   const [shake, setShake] = useState(false);
   const [forceDetail, setForceDetail] = useState<boolean>(() => loadState()?.forceDetail ?? false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerH, setHeaderH] = useState(0);
   const zoom = useZoomLevel();
 
   const showDetail = zoom >= 1.8 || forceDetail;
+
+  // Measure fixed header height (re-run when phase changes so ref is populated)
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    setHeaderH(el.offsetHeight);
+    const ro = new ResizeObserver(() => setHeaderH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [phase]);
 
   // Timer
   useEffect(() => {
@@ -293,60 +305,63 @@ export default function Game() {
 
   // ─── Playing ───────────────────────────────────────────────────
   return (
-    <div className="flex flex-col bg-[#1a1a2e] text-white overflow-hidden select-none" style={{ height: '100svh', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      {/* Header bar */}
-      <header className="flex items-center justify-between px-2 sm:px-4 py-1.5 bg-[#16213e] border-b border-zinc-800 shrink-0 z-20">
-        <div className="flex items-center gap-2 sm:gap-4">
-          <h1 className="text-sm sm:text-lg font-bold tracking-tight">
-            <span className="text-red-400">Dex</span><span>Sprint</span>
-          </h1>
-          <span className="text-xs sm:text-sm font-mono bg-zinc-800 px-2 py-0.5 rounded">
-            {guessed.size}<span className="text-zinc-500">/151</span>
-          </span>
-          <span className="text-xs sm:text-sm font-mono text-zinc-400">
-            {formatTime(elapsed)}
-          </span>
-          <span className="text-xs font-mono uppercase text-zinc-500 bg-zinc-800/60 px-1.5 py-0.5 rounded tracking-wide">
-            {language}
-          </span>
-        </div>
-        <button
-          onClick={() => setShowMenu(m => !m)}
-          className="p-1.5 rounded hover:bg-zinc-700 transition-colors"
-          aria-label="Menu"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-      </header>
+    <div className="relative bg-[#1a1a2e] text-white select-none" style={{ height: '100svh', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
 
-      {/* Input bar */}
-      <div className="flex justify-center px-3 py-2 bg-[#16213e]/80 border-b border-zinc-800 shrink-0 z-20">
-        <form onSubmit={handleSubmit} className="w-full max-w-md flex gap-2">
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder="Enter a Pokémon name and press Enter…"
-            autoFocus
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            className={`flex-1 px-4 py-2 rounded-lg bg-zinc-800 border text-base
-                       placeholder:text-zinc-600 focus:outline-none focus:border-red-400/60 focus:ring-1 focus:ring-red-400/30
-                       transition-all ${shake ? 'animate-shake border-red-500' : 'border-zinc-700'}`}
-          />
+      {/* Fixed header — stays put during pinch-zoom */}
+      <div ref={headerRef} className="fixed top-0 left-0 right-0 z-20 bg-[#16213e]">
+        <header className="flex items-center justify-between px-2 sm:px-4 py-1.5 border-b border-zinc-800">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <h1 className="text-sm sm:text-lg font-bold tracking-tight">
+              <span className="text-red-400">Dex</span><span>Sprint</span>
+            </h1>
+            <span className="text-xs sm:text-sm font-mono bg-zinc-800 px-2 py-0.5 rounded">
+              {guessed.size}<span className="text-zinc-500">/151</span>
+            </span>
+            <span className="text-xs sm:text-sm font-mono text-zinc-400">
+              {formatTime(elapsed)}
+            </span>
+            <span className="text-xs font-mono uppercase text-zinc-500 bg-zinc-800/60 px-1.5 py-0.5 rounded tracking-wide">
+              {language}
+            </span>
+          </div>
           <button
-            type="submit"
-            className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 active:scale-95 text-sm font-medium transition-all shrink-0"
+            onClick={() => setShowMenu(m => !m)}
+            className="p-1.5 rounded hover:bg-zinc-700 transition-colors"
+            aria-label="Menu"
           >
-            Guess
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
           </button>
-        </form>
+        </header>
+
+        {/* Input bar */}
+        <div className="flex justify-center px-3 py-2 bg-[#16213e]/80 border-b border-zinc-800">
+          <form onSubmit={handleSubmit} className="w-full max-w-md flex gap-2">
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="Enter a Pokémon name and press Enter…"
+              autoFocus
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              className={`flex-1 px-4 py-2 rounded-lg bg-zinc-800 border text-base
+                         placeholder:text-zinc-600 focus:outline-none focus:border-red-400/60 focus:ring-1 focus:ring-red-400/30
+                         transition-all ${shake ? 'animate-shake border-red-500' : 'border-zinc-700'}`}
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 active:scale-95 text-sm font-medium transition-all shrink-0"
+            >
+              Guess
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Menu overlay */}
@@ -423,9 +438,21 @@ export default function Game() {
               Sprites from Pokémon FireRed &amp; LeafGreen via PokeAPI.
               Pokémon names and data courtesy of PokeAPI and the Pokémon community.
             </p>
-            <p className="text-xs text-zinc-500 mb-4">
+            <p className="text-xs text-zinc-500 mb-3">
               Pokémon is © Nintendo / Game Freak / Creatures Inc.
             </p>
+            <div className="border-t border-zinc-800 pt-3 mb-4">
+              <p className="text-xs text-zinc-400">
+                Developed by <span className="text-white font-medium">Tuan Anh Le</span>
+              </p>
+              <a
+                href="mailto:ta.lepham16@gmail.com"
+                className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                onClick={e => e.stopPropagation()}
+              >
+                ta.lepham16@gmail.com
+              </a>
+            </div>
             <button
               onClick={() => setShowAbout(false)}
               className="w-full px-4 py-2 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-sm transition-colors"
@@ -436,13 +463,15 @@ export default function Game() {
         </div>
       )}
 
-      {/* Pokemon grid */}
-      <PokemonGrid
-        guessed={guessed}
-        language={language}
-        showDetail={showDetail}
-        flash={flash}
-      />
+      {/* Pokemon grid — pinch-zoom affects only this area */}
+      <div style={{ marginTop: headerH, height: `calc(100% - ${headerH}px)` }}>
+        <PokemonGrid
+          guessed={guessed}
+          language={language}
+          showDetail={showDetail}
+          flash={flash}
+        />
+      </div>
     </div>
   );
 }
@@ -481,7 +510,7 @@ function PokemonGrid({
   const rows = Math.ceil(151 / cols);
 
   return (
-    <div ref={containerRef} className={`flex-1 min-h-0 ${showDetail ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+    <div ref={containerRef} className={`w-full h-full ${showDetail ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       <div
         className="grid w-full"
         style={{
