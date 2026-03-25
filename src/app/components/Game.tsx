@@ -166,9 +166,19 @@ export default function Game() {
   const inputRef = useRef<HTMLInputElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const [headerH, setHeaderH] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const zoom = useZoomLevel();
 
   const showDetail = zoom >= 1.8 || forceDetail;
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // Measure fixed header height (re-run when phase changes so ref is populated)
   useEffect(() => {
@@ -212,8 +222,8 @@ export default function Game() {
     setElapsed(0);
     setPhase('playing');
     clearState();
-    setTimeout(() => inputRef.current?.focus(), 100);
-  }, []);
+    if (!isMobile) setTimeout(() => inputRef.current?.focus(), 100);
+  }, [isMobile]);
 
   const restartGame = useCallback(() => {
     clearState();
@@ -305,7 +315,7 @@ export default function Game() {
 
   // ─── Playing ───────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 bg-[#1a1a2e] text-white select-none" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <div className="fixed inset-0 bg-[#1a1a2e] text-white select-none">
 
       {/* Fixed header — stays put during pinch-zoom */}
       <div ref={headerRef} className="fixed top-0 left-0 right-0 z-20 bg-[#16213e]">
@@ -337,31 +347,33 @@ export default function Game() {
           </button>
         </header>
 
-        {/* Input bar */}
-        <div className="flex justify-center px-3 py-2 bg-[#16213e]/80 border-b border-zinc-800">
-          <form onSubmit={handleSubmit} className="w-full max-w-md flex gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder="Enter a Pokémon name and press Enter…"
-              autoFocus
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-              className={`flex-1 px-4 py-2 rounded-lg bg-zinc-800 border text-base
-                         placeholder:text-zinc-600 focus:outline-none focus:border-red-400/60 focus:ring-1 focus:ring-red-400/30
-                         transition-all ${shake ? 'animate-shake border-red-500' : 'border-zinc-700'}`}
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 active:scale-95 text-sm font-medium transition-all shrink-0"
-            >
-              Guess
-            </button>
-          </form>
-        </div>
+        {/* Input bar — desktop only (mobile gets a fixed bottom bar) */}
+        {!isMobile && (
+          <div className="flex justify-center px-3 py-2 bg-[#16213e]/80 border-b border-zinc-800">
+            <form onSubmit={handleSubmit} className="w-full max-w-md flex gap-2">
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Enter a Pokémon name and press Enter…"
+                autoFocus
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                className={`flex-1 px-4 py-2 rounded-lg bg-zinc-800 border text-base
+                           placeholder:text-zinc-600 focus:outline-none focus:border-red-400/60 focus:ring-1 focus:ring-red-400/30
+                           transition-all ${shake ? 'animate-shake border-red-500' : 'border-zinc-700'}`}
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 active:scale-95 text-sm font-medium transition-all shrink-0"
+              >
+                Guess
+              </button>
+            </form>
+          </div>
+        )}
       </div>
 
       {/* Menu overlay */}
@@ -475,15 +487,49 @@ export default function Game() {
         </div>
       )}
 
-      {/* Pokemon grid — pinch-zoom affects only this area */}
+      {/* Pokemon grid */}
       <div style={{ marginTop: headerH, height: `calc(100% - ${headerH}px)` }}>
         <PokemonGrid
           guessed={guessed}
           language={language}
           showDetail={showDetail}
           flash={flash}
+          isMobile={isMobile}
         />
       </div>
+
+      {/* Mobile bottom input bar — fixed above the software keyboard */}
+      {isMobile && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-20 bg-[#16213e] border-t border-zinc-800"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        >
+          <div className="flex justify-center px-3 py-2">
+            <form onSubmit={handleSubmit} className="w-full flex gap-2">
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Enter a Pokémon name…"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                className={`flex-1 px-4 py-2 rounded-lg bg-zinc-800 border text-base
+                           placeholder:text-zinc-600 focus:outline-none focus:border-red-400/60 focus:ring-1 focus:ring-red-400/30
+                           transition-all ${shake ? 'animate-shake border-red-500' : 'border-zinc-700'}`}
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 active:scale-95 text-sm font-medium transition-all shrink-0"
+              >
+                Guess
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -494,14 +540,17 @@ function PokemonGrid({
   language,
   showDetail,
   flash,
+  isMobile,
 }: {
   guessed: Set<number>;
   language: LanguageCode;
   showDetail: boolean;
   flash: number | null;
+  isMobile: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cols, setCols] = useState(15);
+  const [cellSize, setCellSize] = useState(44);
 
   useEffect(() => {
     function calc() {
@@ -509,28 +558,50 @@ function PokemonGrid({
       if (!el) return;
       const w = el.clientWidth;
       const h = el.clientHeight;
-      if (w === 0 || h === 0) return;
-      const aspect = w / h;
-      const cols = Math.max(5, Math.round(Math.sqrt(151 * aspect)));
-      setCols(cols);
+      if (w === 0) return;
+      if (isMobile) {
+        // Target ~44px square cells; fill the width exactly
+        const c = Math.max(5, Math.round(w / 44));
+        setCols(c);
+        setCellSize(w / c);
+      } else {
+        if (h === 0) return;
+        setCols(Math.max(5, Math.round(Math.sqrt(151 * (w / h)))));
+      }
     }
     calc();
     window.addEventListener('resize', calc);
     return () => window.removeEventListener('resize', calc);
-  }, []);
+  }, [isMobile]);
+
+  // Scroll revealed Pokémon into view on mobile
+  useEffect(() => {
+    if (!isMobile || flash === null) return;
+    const el = containerRef.current?.querySelector<HTMLElement>(`[data-pokemon-id="${flash}"]`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [flash, isMobile]);
 
   const rows = Math.ceil(151 / cols);
 
   return (
-    <div ref={containerRef} className="w-full h-full overflow-hidden">
+    <div ref={containerRef} className={`w-full h-full ${isMobile ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       <div
         className="grid w-full"
-        style={{
-          height: 'calc(100% - 4px)',
-          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gap: '1px',
-        }}
+        style={isMobile
+          ? {
+              gridTemplateColumns: `repeat(${cols}, 1fr)`,
+              gridAutoRows: `${cellSize}px`,
+              gap: '1px',
+              // Extra bottom padding so last row clears the fixed input bar
+              paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+            }
+          : {
+              height: 'calc(100% - 4px)',
+              gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+              gridTemplateColumns: `repeat(${cols}, 1fr)`,
+              gap: '1px',
+            }
+        }
       >
         {POKEMON.map(pokemon => (
           <PokemonCell
@@ -573,6 +644,7 @@ const PokemonCell = ({
 
   return (
     <div
+      data-pokemon-id={pokemon.id}
       style={{ containerType: 'inline-size' }}
       className={`rounded-sm overflow-hidden relative min-h-0
                   transition-all duration-300
