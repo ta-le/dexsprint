@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { POKEMON, getGeneration, type Pokemon, type LanguageCode, type GenerationId } from '../data/pokemon';
+
+const GIF_PLAY_DURATION_MS = 1200;
 
 interface PokemonGridProps {
   guessed: Set<number>;
@@ -17,6 +19,49 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, ge
   const containerRef = useRef<HTMLDivElement>(null);
   const [cols, setCols] = useState(15);
   const [cellSize, setCellSize] = useState(44);
+  const [playingIds, setPlayingIds] = useState<Set<number>>(new Set());
+  const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+  const playCountRef = useRef<Map<number, number>>(new Map());
+  const [playCounts, setPlayCounts] = useState<Map<number, number>>(new Map());
+
+  const startPlaying = useCallback((id: number) => {
+    const prev = playCountRef.current.get(id) ?? 0;
+    const next = prev + 1;
+    playCountRef.current.set(id, next);
+    setPlayCounts(new Map(playCountRef.current));
+    setPlayingIds(prev => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+    const existing = timersRef.current.get(id);
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      setPlayingIds(prev => {
+        if (!prev.has(id)) return prev;
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      timersRef.current.delete(id);
+    }, GIF_PLAY_DURATION_MS);
+    timersRef.current.set(id, timer);
+  }, []);
+
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      timers.forEach(t => clearTimeout(t));
+      timers.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (flash !== null) {
+      startPlaying(flash);
+    }
+  }, [flash, startPlaying]);
 
   const activePokemon = useMemo(() => {
     return POKEMON.filter(p => {
@@ -106,6 +151,9 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, ge
               language={language}
               showDetail={showDetail}
               isFlashing={flash === pokemon.id}
+              playing={playingIds.has(pokemon.id)}
+              playCount={playCounts.get(pokemon.id) ?? 0}
+              onReplay={() => startPlaying(pokemon.id)}
             />
           </div>
         ))}
@@ -120,9 +168,12 @@ interface PokemonCellProps {
   language: LanguageCode;
   showDetail: boolean;
   isFlashing: boolean;
+  playing: boolean;
+  playCount: number;
+  onReplay: () => void;
 }
 
-export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashing }: PokemonCellProps) {
+export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashing, playing, playCount, onReplay }: PokemonCellProps) {
   const name = pokemon.names[language] || pokemon.names.en;
 
   if (!revealed) {
@@ -136,23 +187,37 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
   return (
     <div
       data-pokemon-id={pokemon.id}
+      onClick={playing ? undefined : onReplay}
       style={{ containerType: 'inline-size', aspectRatio: '1' }}
       className={`relative transition-all duration-200 
         ${isFlashing 
           ? 'animate-reveal -m-px p-px bg-linear-to-br from-amber-500/20 to-amber-400/10' 
           : 'bg-surface hover:bg-surface-hover'
-        }`}
+        }
+        ${playing ? 'cursor-default' : 'cursor-pointer'}`}
     >
       <div className="absolute inset-[8%]">
-        <Image
-          src={`/sprites/${pokemon.id}.png`}
-          alt={name}
-          fill
-          unoptimized
-          className="pixelated object-contain"
-          draggable={false}
-          sizes="(max-width: 767px) 64px, 96px"
-        />
+        {playing ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            key={`gif-${playCount}`}
+            src={`/sprites/animated/${pokemon.id}.gif`}
+            alt={name}
+            className="pixelated object-contain w-full h-full"
+            draggable={false}
+            style={{ transform: 'scale(1.5)' }}
+          />
+        ) : (
+          <Image
+            src={`/sprites/${pokemon.id}.png`}
+            alt={name}
+            fill
+            unoptimized
+            className="pixelated object-contain"
+            draggable={false}
+            sizes="(max-width: 767px) 64px, 96px"
+          />
+        )}
       </div>
       {showDetail && (
         <>

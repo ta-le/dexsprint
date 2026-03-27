@@ -11,12 +11,16 @@ When git committing, use only a short summary in the conventional commits standa
 # Validation
 
 For UI changes: 
-Always use the chrome-devtools MCP to record the baseline before changing things. After finishing changes, verify them using chrome-devtools MCP. Click around to verify interactive elements or UX changes.
-
-Validate using typescript check and eslint. Use prettier to format before finishing changes.
+- Always use the chrome-devtools MCP to record the baseline before changing things. After finishing changes, verify them using chrome-devtools MCP. 
+- Click around to verify interactive elements or UX changes.
+- Validate using typescript check and eslint. Use prettier to format before finishing changes.
 
 # Design
 
-Stick to existing conventions.
-Don't hardcode color or size values, stick with Tailwind presets or design system colors.
-Use shadcn components if appropriate, add them when new ones are required.
+- Stick to existing conventions.
+- Don't hardcode color or size values, stick with Tailwind presets or design system colors.
+- Use shadcn components if appropriate, add them when new ones are required.
+
+# Code
+
+- Avoid excessive prop drilling.
