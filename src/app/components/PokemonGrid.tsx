@@ -128,7 +128,7 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
   if (!revealed) {
     return (
       <div className="bg-surface flex items-center justify-center overflow-hidden" style={{ aspectRatio: '1' }}>
-        <span className="text-foreground-dim text-[10px] select-none font-mono">{pokemon.id}</span>
+        <span className="text-foreground-muted text-[10px] select-none font-sans drop-shadow-sm">{String(pokemon.id).padStart(3, '0')}</span>
       </div>
     );
   }
@@ -139,11 +139,11 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
       style={{ containerType: 'inline-size', aspectRatio: '1' }}
       className={`relative transition-all duration-200 
         ${isFlashing 
-          ? 'animate-reveal -m-px p-px bg-gradient-to-br from-amber-500/20 to-amber-400/10' 
+          ? 'animate-reveal -m-px p-px bg-linear-to-br from-amber-500/20 to-amber-400/10' 
           : 'bg-surface hover:bg-surface-hover'
         }`}
     >
-      <div className="absolute inset-[6%]">
+      <div className="absolute inset-[8%]">
         <Image
           src={`/sprites/${pokemon.id}.png`}
           alt={name}
@@ -155,14 +155,19 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
         />
       </div>
       {showDetail && (
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-surface/95 via-surface/95 to-transparent flex flex-col items-center px-1 pt-2.5 pb-1.5">
-          <span style={{ fontSize: 'clamp(7px, 14cqi, 10px)' }} className="text-foreground-muted leading-none font-mono tracking-tight">
-            #{String(pokemon.id).padStart(3, '0')}
+        <>
+          <span
+            style={{ fontSize: 'clamp(7px, 13cqi, 10px)' }}
+            className="absolute top-1 left-1 text-foreground-muted font-sans drop-shadow-sm"
+          >
+            {String(pokemon.id).padStart(3, '0')}
           </span>
-          <span style={{ fontSize: 'clamp(8px, 15cqi, 12px)' }} className="font-medium leading-tight text-center truncate w-full text-foreground">
-            {name}
-          </span>
-        </div>
+          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-surface/85 to-transparent flex flex-col items-center px-0.5 pt-2 pb-1">
+            <span style={{ fontSize: 'clamp(8px, 15cqi, 11px)' }} className="font-sans font-semibold leading-tight text-center truncate w-full text-foreground drop-shadow-sm">
+              {name}
+            </span>
+          </div>
+</>
       )}
     </div>
   );
