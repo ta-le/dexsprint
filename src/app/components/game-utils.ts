@@ -1,4 +1,4 @@
-import type { LanguageCode } from '../data/pokemon';
+import type { LanguageCode, GenerationId } from '../data/pokemon';
 
 export function levenshtein(a: string, b: string): number {
   const m = a.length, n = b.length;
@@ -43,6 +43,7 @@ export function formatTime(ms: number): string {
 
 export interface GameState {
   language: LanguageCode;
+  generations: GenerationId[];
   guessed: number[];
   startTime: number;
   elapsedBeforePause: number;

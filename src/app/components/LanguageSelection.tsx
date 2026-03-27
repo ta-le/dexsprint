@@ -1,59 +1,112 @@
 'use client';
 
-import type { LanguageCode } from '../data/pokemon';
-import { LANGUAGES } from '../data/pokemon';
+import { useState } from 'react';
+import type { LanguageCode, GenerationId } from '../data/pokemon';
+import { LANGUAGES, GENERATIONS } from '../data/pokemon';
 
 interface LanguageSelectionProps {
-  onSelect: (lang: LanguageCode) => void;
+  onSelect: (lang: LanguageCode, generations: Set<GenerationId>) => void;
+  initialGenerations?: Set<GenerationId>;
 }
 
-export function LanguageSelection({ onSelect }: LanguageSelectionProps) {
+export function LanguageSelection({ onSelect, initialGenerations }: LanguageSelectionProps) {
+  const [selectedGens, setSelectedGens] = useState<Set<GenerationId>>(
+    () => initialGenerations ? new Set(initialGenerations) : new Set([1])
+  );
+  const [selectedLang, setSelectedLang] = useState<LanguageCode | null>(null);
+
+  const toggleGen = (genId: GenerationId) => {
+    setSelectedGens(prev => {
+      const next = new Set(prev);
+      if (next.has(genId)) {
+        if (next.size > 1) next.delete(genId);
+      } else {
+        next.add(genId);
+      }
+      return next;
+    });
+  };
+
+  const handleStart = () => {
+    if (selectedLang && selectedGens.size > 0) {
+      onSelect(selectedLang, selectedGens);
+    }
+  };
+
+  const totalCount = GENERATIONS.filter(g => selectedGens.has(g.id)).reduce(
+    (sum, g) => sum + (g.endId - g.startId + 1), 0
+  );
+
+  const canStart = selectedLang !== null && selectedGens.size > 0;
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-6 overflow-auto">
-      {/* Subtle grid background pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-accent-dim/20 via-transparent to-transparent" />
-      <div 
-        className="absolute inset-0" 
-        style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
-          backgroundSize: '24px 24px'
-        }}
-      />
+      <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight mb-2">
+        <span className="text-accent">Dex</span><span className="text-foreground/70">Sprint</span>
+      </h1>
+      <div className="h-px w-16 bg-accent/30 mx-auto mb-4" />
+      <p className="text-foreground-muted text-sm sm:text-base tracking-wide mb-8">
+        Name all {totalCount} Pokémon
+      </p>
       
-      {/* Logo and title */}
-      <div className="relative text-center mb-12 animate-slide-up">
-        <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight mb-2">
-          <span className="text-accent">Dex</span><span className="text-foreground/70">Sprint</span>
-        </h1>
-        <div className="h-px w-16 bg-accent/30 mx-auto mb-4" />
-        <p className="text-foreground-muted text-sm sm:text-base tracking-wide">
-          Name all 151 Gen I Pokémon
+      <div className="w-full max-w-sm mb-6">
+        <p className="text-xs text-foreground-subtle tracking-widest uppercase mb-3 text-center">
+          Select Generations
         </p>
-      </div>
-      
-      {/* Language selection grid with decorative elements */}
-      <div className="relative w-full max-w-sm mb-8 animate-slide-up" style={{ animationDelay: '150ms' }}>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {LANGUAGES.map((lang, i) => (
+        <div className="flex gap-2 justify-center">
+          {GENERATIONS.map(gen => (
             <button
-              key={lang.code}
-              onClick={() => onSelect(lang.code)}
-              className="group relative px-4 py-5 rounded-xl bg-surface/30 border border-border-subtle 
-                         text-sm font-medium text-foreground/90 transition-all duration-200 ease-out
-                         hover:bg-surface hover:border-accent/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/5
-                         active:translate-y-0 active:scale-[0.98]"
-              style={{ animationDelay: `${200 + i * 50}ms` }}
+              key={gen.id}
+              type="button"
+              onClick={() => toggleGen(gen.id)}
+              className={`px-4 py-3 rounded-xl border transition-all
+                ${selectedGens.has(gen.id)
+                  ? 'bg-accent/10 border-accent/40 text-accent'
+                  : 'bg-surface/30 border-border-subtle text-foreground/70 hover:bg-surface'
+                }`}
             >
-              <span className="relative z-10">{lang.label}</span>
-              {/* Subtle accent indicator on hover */}
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-accent/60 group-hover:w-8 transition-all duration-200" />
+              {gen.label} ({gen.endId - gen.startId + 1})
             </button>
           ))}
         </div>
       </div>
       
-      {/* Status text with subtle icon */}
-      <div className="relative flex items-center gap-2 text-foreground-subtle text-xs tracking-widest uppercase animate-fade-in" style={{ animationDelay: '350ms' }}>
+      <div className="w-full max-w-sm mb-8">
+        <p className="text-xs text-foreground-subtle tracking-widest uppercase mb-3 text-center">
+          Select Language
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {LANGUAGES.map(lang => (
+            <button
+              key={lang.code}
+              type="button"
+              onClick={() => setSelectedLang(lang.code)}
+              className={`px-4 py-5 rounded-xl border transition-all
+                ${selectedLang === lang.code
+                  ? 'bg-accent/10 border-accent/40 text-accent'
+                  : 'bg-surface/30 border-border-subtle hover:bg-surface'
+                }`}
+            >
+              {lang.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      <button
+        type="button"
+        onClick={handleStart}
+        disabled={!canStart}
+        className={`px-10 py-3.5 rounded-xl font-medium text-sm transition-all
+          ${canStart
+            ? 'bg-accent hover:bg-accent-light text-background'
+            : 'bg-surface/50 text-foreground-dim cursor-not-allowed'
+          }`}
+      >
+        Start Game
+      </button>
+      
+      <div className="flex items-center gap-2 text-foreground-subtle text-xs tracking-widest uppercase mt-8">
         <span className="w-1.5 h-1.5 rounded-full bg-accent/50" />
         <span>Ready to begin</span>
         <span className="w-1.5 h-1.5 rounded-full bg-accent/50" />

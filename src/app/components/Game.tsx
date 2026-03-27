@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   POKEMON,
+  GENERATIONS,
+  getGeneration,
   type LanguageCode,
+  type GenerationId,
   type Pokemon,
 } from '../data/pokemon';
 import { LanguageSelection } from './LanguageSelection';
@@ -59,13 +62,20 @@ function useZoomLevel() {
 export default function Game() {
   const [phase, setPhase] = useState<'language' | 'playing' | 'complete'>(() => {
     const saved = loadState();
-    if (saved && saved.guessed.length > 0) {
-      return saved.guessed.length >= 151 ? 'complete' : 'playing';
+    if (saved && saved.guessed.length > 0 && saved.generations.length > 0) {
+      const savedTotal = saved.generations.reduce((sum, genId) => {
+        const gen = GENERATIONS.find(g => g.id === genId);
+        return sum + (gen ? gen.endId - gen.startId + 1 : 0);
+      }, 0);
+      if (saved.guessed.length >= savedTotal) return 'complete';
+      if (saved.startTime > 0) return 'playing';
     }
     return 'language';
   });
-  const [language, setLanguage] = useState<LanguageCode>(() => {
-    return loadState()?.language ?? 'en';
+  const [language, setLanguage] = useState<LanguageCode>(() => loadState()?.language ?? 'en');
+  const [generations, setGenerations] = useState<Set<GenerationId>>(() => {
+    const saved = loadState();
+    return saved?.generations ? new Set(saved.generations) : new Set([1]);
   });
   const [guessed, setGuessed] = useState<Set<number>>(() => {
     const saved = loadState();
@@ -73,19 +83,21 @@ export default function Game() {
   });
   const [startTime, setStartTime] = useState(() => {
     const saved = loadState();
-    return saved && saved.guessed.length > 0 && saved.guessed.length < 151 ? Date.now() : 0;
+    return saved && saved.startTime > 0 ? saved.startTime : 0;
   });
-  const [elapsedBeforePause, setElapsedBeforePause] = useState(() => {
-    return loadState()?.elapsedBeforePause ?? 0;
-  });
+  const [elapsedBeforePause, setElapsedBeforePause] = useState(() => loadState()?.elapsedBeforePause ?? 0);
   const [elapsed, setElapsed] = useState(() => {
     const saved = loadState();
-    return saved && saved.guessed.length >= 151 ? saved.elapsedBeforePause : 0;
+    const savedTotal = saved?.generations?.reduce((sum, genId) => {
+      const gen = GENERATIONS.find(g => g.id === genId);
+      return sum + (gen ? gen.endId - gen.startId + 1 : 0);
+    }, 0) ?? 151;
+    return saved && saved.guessed.length >= savedTotal ? saved.elapsedBeforePause : 0;
   });
   const [flash, setFlash] = useState<number | null>(null);
   const [shake, setShake] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [forceDetail, setForceDetail] = useState<boolean>(() => loadState()?.forceDetail ?? false);
+  const [forceDetail, setForceDetail] = useState(() => loadState()?.forceDetail ?? false);
   const [showCompletionDialog, setShowCompletionDialog] = useState(phase === 'complete');
   const headerRef = useRef<HTMLDivElement>(null);
   const [headerH, setHeaderH] = useState(0);
@@ -97,6 +109,15 @@ export default function Game() {
   const zoom = useZoomLevel();
 
   const showDetail = zoom >= 1.8 || forceDetail;
+
+  const activePokemon = useMemo(() => {
+    return POKEMON.filter(p => {
+      const gen = getGeneration(p.id);
+      return generations.has(gen);
+    });
+  }, [generations]);
+
+  const totalPokemon = activePokemon.length;
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
@@ -143,15 +164,17 @@ export default function Game() {
       : elapsed;
     saveState({
       language,
+      generations: Array.from(generations),
       guessed: Array.from(guessed),
-      startTime: Date.now(),
+      startTime,
       elapsedBeforePause: currentElapsed,
       forceDetail,
     });
-  }, [guessed, language, phase, startTime, elapsedBeforePause, elapsed, forceDetail]);
+  }, [guessed, language, phase, startTime, elapsedBeforePause, elapsed, forceDetail, generations]);
 
-  const startGame = useCallback((lang: LanguageCode) => {
+  const startGame = useCallback((lang: LanguageCode, gens: Set<GenerationId>) => {
     setLanguage(lang);
+    setGenerations(gens);
     setGuessed(new Set());
     setStartTime(Date.now());
     setElapsedBeforePause(0);
@@ -161,21 +184,45 @@ export default function Game() {
     clearState();
   }, []);
 
-  const restartGame = useCallback(() => {
+  const addGenerations = useCallback((additionalGens: Set<GenerationId>) => {
+    const newGens = new Set(generations);
+    let added = false;
+    for (const gen of additionalGens) {
+      if (!newGens.has(gen)) {
+        newGens.add(gen);
+        added = true;
+      }
+    }
+    if (added) {
+      setGenerations(newGens);
+      setPhase('playing');
+      setShowCompletionDialog(false);
+    }
+  }, [generations]);
+
+  const restartGame = useCallback((newGens?: Set<GenerationId>) => {
     clearState();
     setGuessed(new Set());
     setStartTime(0);
     setElapsedBeforePause(0);
     setElapsed(0);
-    setPhase('language');
-    setShowCompletionDialog(false);
+    setShowRestart(false);
+    setShowMenu(false);
+    if (newGens) {
+      setGenerations(newGens);
+      setPhase('playing');
+      setShowCompletionDialog(false);
+    } else {
+      setPhase('language');
+      setShowCompletionDialog(false);
+    }
   }, []);
 
   const handleInputSubmit = useCallback((input: string): boolean => {
     if (input.trim().length < 2) return false;
 
     const matches: { pokemon: Pokemon; dist: number }[] = [];
-    for (const pokemon of POKEMON) {
+    for (const pokemon of activePokemon) {
       if (guessed.has(pokemon.id)) continue;
       const target = pokemon.names[language] || pokemon.names.en;
       const dist = fuzzyMatchDist(input.trim(), target);
@@ -199,7 +246,7 @@ export default function Game() {
       setGuessed(newGuessed);
       setFlash(chosen.id);
       setTimeout(() => setFlash(null), 1200);
-      if (newGuessed.size === 151) {
+      if (newGuessed.size === totalPokemon) {
         setElapsed(elapsedBeforePause + (Date.now() - startTime));
         setPhase('complete');
         setShowCompletionDialog(true);
@@ -207,7 +254,7 @@ export default function Game() {
       return true;
     }
 
-    for (const pokemon of POKEMON) {
+    for (const pokemon of activePokemon) {
       if (!guessed.has(pokemon.id)) continue;
       const target = pokemon.names[language] || pokemon.names.en;
       if (fuzzyMatchDist(input.trim(), target) !== null) {
@@ -220,15 +267,17 @@ export default function Game() {
     setShake(true);
     setTimeout(() => setShake(false), 500);
     return false;
-  }, [guessed, language, elapsedBeforePause, startTime]);
+  }, [guessed, language, activePokemon, totalPokemon, elapsedBeforePause, startTime]);
 
   const [showMenu, setShowMenu] = useState(false);
   const [showRestart, setShowRestart] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
 
   if (phase === 'language') {
-    return <LanguageSelection onSelect={startGame} />;
+    return <LanguageSelection onSelect={startGame} initialGenerations={generations} />;
   }
+
+  const availableGens = GENERATIONS.filter(g => !generations.has(g.id));
 
   return (
     <div
@@ -238,6 +287,7 @@ export default function Game() {
       <div ref={headerRef} className="fixed top-0 left-0 right-0 z-20 bg-surface-elevated/80 backdrop-blur-sm border-b border-border-subtle">
         <GameHeader
           guessedCount={guessed.size}
+          totalCount={totalPokemon}
           elapsed={elapsed}
           language={language}
           onMenuClick={() => setShowMenu(m => !m)}
@@ -275,7 +325,7 @@ export default function Game() {
 
       <RestartDialog
         open={showRestart}
-        onConfirm={restartGame}
+        onConfirm={() => restartGame()}
         onCancel={() => setShowRestart(false)}
       />
 
@@ -288,7 +338,10 @@ export default function Game() {
       <CompletionDialog
         open={showCompletionDialog && phase === 'complete'}
         elapsed={elapsed}
-        onRestart={restartGame}
+        totalCount={totalPokemon}
+        availableGens={availableGens}
+        onRestart={() => restartGame()}
+        onAddGenerations={addGenerations}
         onDismiss={() => setShowCompletionDialog(false)}
       />
 
@@ -299,6 +352,7 @@ export default function Game() {
           showDetail={showDetail}
           flash={flash}
           isMobile={isMobile}
+          generations={generations}
         />
       </div>
 

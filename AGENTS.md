@@ -19,3 +19,4 @@ Validate using typescript check and eslint. Use prettier to format before finish
 
 Stick to existing conventions.
 Don't hardcode color or size values, stick with Tailwind presets or design system colors.
+Use shadcn components if appropriate, add them when new ones are required.

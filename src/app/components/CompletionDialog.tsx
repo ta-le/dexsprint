@@ -3,15 +3,21 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { formatTime } from './game-utils';
+import type { GenerationId } from '../data/pokemon';
 
 interface CompletionDialogProps {
   open: boolean;
   elapsed: number;
+  totalCount: number;
+  availableGens: { id: GenerationId; label: string; startId: number; endId: number }[];
   onRestart: () => void;
+  onAddGenerations: (additionalGens: Set<GenerationId>) => void;
   onDismiss: () => void;
 }
 
-export function CompletionDialog({ open, elapsed, onRestart, onDismiss }: CompletionDialogProps) {
+export function CompletionDialog({ open, elapsed, totalCount, availableGens, onRestart, onAddGenerations, onDismiss }: CompletionDialogProps) {
+  const canAddMore = availableGens.length > 0;
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onDismiss()}>
       <DialogContent className="bg-surface-elevated border-border max-w-sm text-center">
@@ -23,12 +29,33 @@ export function CompletionDialog({ open, elapsed, onRestart, onDismiss }: Comple
           </div>
           <DialogTitle className="text-xl font-semibold tracking-tight">Complete!</DialogTitle>
           <DialogDescription className="text-foreground-muted">
-            All 151 Pokémon named
+            All {totalCount} Pokémon named
           </DialogDescription>
         </DialogHeader>
         <div className="my-6 p-4 rounded-xl bg-surface/50 border border-border-subtle">
           <p className="text-3xl font-mono font-semibold text-accent">{formatTime(elapsed)}</p>
         </div>
+        
+        {canAddMore && (
+          <div className="mb-4">
+            <p className="text-sm text-foreground-muted mb-3">
+              Add more generations to continue?
+            </p>
+            <div className="flex gap-2 justify-center">
+              {availableGens.map(gen => (
+                <Button
+                  key={gen.id}
+                  onClick={() => onAddGenerations(new Set([gen.id]))}
+                  variant="outline"
+                  className="text-xs"
+                >
+                  {gen.label} ({gen.endId - gen.startId + 1})
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-3 justify-center">
           <Button
             variant="outline"

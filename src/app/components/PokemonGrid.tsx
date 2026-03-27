@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { POKEMON, getSpriteUrl, type Pokemon, type LanguageCode } from '../data/pokemon';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { POKEMON, getGeneration, type Pokemon, type LanguageCode, type GenerationId } from '../data/pokemon';
 
 interface PokemonGridProps {
   guessed: Set<number>;
@@ -9,12 +9,33 @@ interface PokemonGridProps {
   showDetail: boolean;
   flash: number | null;
   isMobile: boolean;
+  generations: Set<GenerationId>;
 }
 
-export function PokemonGrid({ guessed, language, showDetail, flash, isMobile }: PokemonGridProps) {
+export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, generations }: PokemonGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cols, setCols] = useState(15);
   const [cellSize, setCellSize] = useState(44);
+
+  const activePokemon = useMemo(() => {
+    return POKEMON.filter(p => {
+      const gen = getGeneration(p.id);
+      return generations.has(gen);
+    });
+  }, [generations]);
+
+  const generationBreaks = useMemo(() => {
+    const breaks: number[] = [];
+    let lastGen: GenerationId | null = null;
+    activePokemon.forEach((pokemon, idx) => {
+      const gen = getGeneration(pokemon.id);
+      if (lastGen !== null && gen !== lastGen) {
+        breaks.push(idx);
+      }
+      lastGen = gen;
+    });
+    return breaks;
+  }, [activePokemon]);
 
   useEffect(() => {
     function calc() {
@@ -24,29 +45,32 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile }: 
       const h = el.clientHeight;
       if (w === 0) return;
       if (isMobile) {
-        const c = Math.max(5, Math.round(w / 44));
+        const minCellSize = 64;
+        const c = Math.max(5, Math.floor(w / minCellSize));
         setCols(c);
         setCellSize(w / c);
       } else {
-        if (h === 0) return;
-        setCols(Math.max(5, Math.round(Math.sqrt(151 * (w / h)))));
+        const minCellSize = 96;
+        const c = Math.max(5, Math.floor(w / minCellSize));
+        setCols(c);
+        setCellSize(w / c);
       }
     }
     calc();
     window.addEventListener('resize', calc);
     return () => window.removeEventListener('resize', calc);
-  }, [isMobile]);
+  }, [isMobile, activePokemon.length]);
 
   useEffect(() => {
-    if (!isMobile || flash === null) return;
+    if (flash === null) return;
     const el = containerRef.current?.querySelector<HTMLElement>(`[data-pokemon-id="${flash}"]`);
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, [flash, isMobile]);
+  }, [flash]);
 
-  const rows = Math.ceil(151 / cols);
+  const rows = Math.ceil(activePokemon.length / cols);
 
   return (
-    <div ref={containerRef} className={`w-full h-full ${isMobile ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+    <div ref={containerRef} className="w-full h-full overflow-y-auto">
       <div
         className="grid w-full"
         style={isMobile
@@ -57,22 +81,22 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile }: 
               paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
             }
           : {
-              height: 'calc(100% - 8px)',
-              gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+              gridAutoRows: `${cellSize}px`,
               gridTemplateColumns: `repeat(${cols}, 1fr)`,
               gap: '1px',
             }
         }
       >
-        {POKEMON.map(pokemon => (
-          <PokemonCell
-            key={pokemon.id}
-            pokemon={pokemon}
-            revealed={guessed.has(pokemon.id)}
-            language={language}
-            showDetail={showDetail}
-            isFlashing={flash === pokemon.id}
-          />
+        {activePokemon.map((pokemon, idx) => (
+          <div key={pokemon.id} style={generationBreaks.includes(idx) ? { borderLeft: '2px solid var(--accent)', marginLeft: '-1px' } : undefined} className="min-h-0">
+            <PokemonCell
+              pokemon={pokemon}
+              revealed={guessed.has(pokemon.id)}
+              language={language}
+              showDetail={showDetail}
+              isFlashing={flash === pokemon.id}
+            />
+          </div>
         ))}
       </div>
     </div>
@@ -92,8 +116,8 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
 
   if (!revealed) {
     return (
-      <div className="bg-surface flex items-center justify-center overflow-hidden min-h-0">
-        <span className="text-foreground-dim text-[11px] select-none font-mono">?</span>
+      <div className="bg-surface flex items-center justify-center overflow-hidden" style={{ aspectRatio: '1' }}>
+        <span className="text-foreground-dim text-[10px] select-none font-mono">{pokemon.id}</span>
       </div>
     );
   }
@@ -101,15 +125,15 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
   return (
     <div
       data-pokemon-id={pokemon.id}
-      style={{ containerType: 'inline-size' }}
-      className={`relative min-h-0 transition-all duration-200 
+      style={{ containerType: 'inline-size', aspectRatio: '1' }}
+      className={`relative transition-all duration-200 
         ${isFlashing 
           ? 'animate-reveal -m-px p-px bg-gradient-to-br from-accent/15 to-accent/5' 
           : 'bg-surface hover:bg-surface-hover'
         }`}
     >
       <img
-        src={getSpriteUrl(pokemon.id)}
+        src={`/sprites/${pokemon.id}.png`}
         alt={name}
         className="pixelated absolute inset-[6%] w-[88%] h-[88%] object-contain"
         loading="lazy"
