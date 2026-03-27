@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { formatTime } from './game-utils';
@@ -17,6 +18,21 @@ interface CompletionDialogProps {
 
 export function CompletionDialog({ open, elapsed, totalCount, availableGens, onRestart, onAddGenerations, onDismiss }: CompletionDialogProps) {
   const canAddMore = availableGens.length > 0;
+  const [selectedGens, setSelectedGens] = useState<Set<GenerationId>>(new Set());
+
+  const toggleGen = (id: GenerationId) => {
+    setSelectedGens(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleConfirm = () => {
+    onAddGenerations(selectedGens);
+    setSelectedGens(new Set());
+  };
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onDismiss()}>
@@ -41,18 +57,25 @@ export function CompletionDialog({ open, elapsed, totalCount, availableGens, onR
             <p className="text-sm text-foreground-muted mb-3">
               Add more generations to continue?
             </p>
-            <div className="flex gap-2 justify-center">
+            <div className="flex gap-2 justify-center flex-wrap">
               {availableGens.map(gen => (
                 <Button
                   key={gen.id}
-                  onClick={() => onAddGenerations(new Set([gen.id]))}
-                  variant="outline"
-                  className="text-xs"
+                  onClick={() => toggleGen(gen.id)}
+                  variant={selectedGens.has(gen.id) ? 'default' : 'outline'}
+                  className={`text-xs ${selectedGens.has(gen.id) ? 'bg-accent hover:bg-accent-light' : ''}`}
                 >
                   {gen.label} ({gen.endId - gen.startId + 1})
                 </Button>
               ))}
             </div>
+            <Button
+              onClick={handleConfirm}
+              disabled={selectedGens.size === 0}
+              className="mt-3 w-full bg-accent hover:bg-accent-light"
+            >
+              Add {selectedGens.size > 0 ? `${selectedGens.size} generation${selectedGens.size > 1 ? 's' : ''}` : 'generations'}
+            </Button>
           </div>
         )}
 
