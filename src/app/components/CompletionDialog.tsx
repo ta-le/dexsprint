@@ -35,7 +35,7 @@ export function CompletionDialog({ open, elapsed, onRestart, onDismiss }: Comple
             onClick={onDismiss}
             className="flex-1"
           >
-            View Grid
+            Dismiss
           </Button>
           <Button
             onClick={onRestart}
