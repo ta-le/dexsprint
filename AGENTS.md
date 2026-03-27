@@ -10,4 +10,5 @@ When git committing, use only a short summary in the conventional commits standa
 
 # Validation
 
-Use the chrome-devtools MCP if available to verify UI changes.
+For UI changes: 
+Always use the chrome-devtools MCP to record the baseline before changing things. After finishing changes, verify them using chrome-devtools MCP. Click around to verify interactive elements or UX changes.
