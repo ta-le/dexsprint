@@ -62,7 +62,7 @@ function useZoomLevel() {
 export default function Game() {
   const [phase, setPhase] = useState<'language' | 'playing' | 'complete'>(() => {
     const saved = loadState();
-    if (saved && saved.guessed.length > 0 && saved.generations.length > 0) {
+    if (saved && saved.guessed?.length > 0 && saved.generations?.length > 0) {
       const savedTotal = saved.generations.reduce((sum, genId) => {
         const gen = GENERATIONS.find(g => g.id === genId);
         return sum + (gen ? gen.endId - gen.startId + 1 : 0);
