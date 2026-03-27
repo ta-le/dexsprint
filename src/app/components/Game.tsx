@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   POKEMON,
   type LanguageCode,
   type Pokemon,
 } from '../data/pokemon';
 import { LanguageSelection } from './LanguageSelection';
-import { CompletionScreen } from './CompletionScreen';
+import { CompletionDialog } from './CompletionDialog';
 import { GameHeader } from './GameHeader';
 import { GameInput } from './GameInput';
 import { GameMenu } from './GameMenu';
@@ -85,6 +86,7 @@ export default function Game() {
   const [shake, setShake] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [forceDetail, setForceDetail] = useState<boolean>(() => loadState()?.forceDetail ?? false);
+  const [showCompletionDialog, setShowCompletionDialog] = useState(phase === 'complete');
   const headerRef = useRef<HTMLDivElement>(null);
   const [headerH, setHeaderH] = useState(0);
   const [isMobile, setIsMobile] = useState(() => {
@@ -155,6 +157,7 @@ export default function Game() {
     setElapsedBeforePause(0);
     setElapsed(0);
     setPhase('playing');
+    setShowCompletionDialog(false);
     clearState();
   }, []);
 
@@ -165,6 +168,7 @@ export default function Game() {
     setElapsedBeforePause(0);
     setElapsed(0);
     setPhase('language');
+    setShowCompletionDialog(false);
   }, []);
 
   const handleInputSubmit = useCallback((input: string): boolean => {
@@ -198,6 +202,7 @@ export default function Game() {
       if (newGuessed.size === 151) {
         setElapsed(elapsedBeforePause + (Date.now() - startTime));
         setPhase('complete');
+        setShowCompletionDialog(true);
       }
       return true;
     }
@@ -225,10 +230,6 @@ export default function Game() {
     return <LanguageSelection onSelect={startGame} />;
   }
 
-  if (phase === 'complete') {
-    return <CompletionScreen elapsed={elapsed} onRestart={restartGame} />;
-  }
-
   return (
     <div
       className="fixed top-0 left-0 right-0 bg-background text-foreground select-none overflow-hidden"
@@ -244,11 +245,20 @@ export default function Game() {
 
         {!isMobile && (
           <div className="flex justify-center px-5 py-3.5 border-t border-border-subtle bg-surface/30">
-            <GameInput
-              isMobile={isMobile}
-              onSubmit={handleInputSubmit}
-              shake={shake}
-            />
+            {phase === 'complete' ? (
+              <Button
+                onClick={() => setShowRestart(true)}
+                className="px-8 py-2.5 rounded-lg bg-accent hover:bg-accent-light font-medium transition-all"
+              >
+                Play Again
+              </Button>
+            ) : (
+              <GameInput
+                isMobile={isMobile}
+                onSubmit={handleInputSubmit}
+                shake={shake}
+              />
+            )}
           </div>
         )}
       </div>
@@ -275,6 +285,13 @@ export default function Game() {
         onClose={() => setShowAbout(false)}
       />
 
+      <CompletionDialog
+        open={showCompletionDialog && phase === 'complete'}
+        elapsed={elapsed}
+        onRestart={restartGame}
+        onDismiss={() => setShowCompletionDialog(false)}
+      />
+
       <div className="p-1" style={{ marginTop: headerH, height: `calc(100% - ${headerH}px)` }}>
         <PokemonGrid
           guessed={guessed}
@@ -291,11 +308,20 @@ export default function Game() {
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
           <div className="flex justify-center px-3 py-3">
-            <GameInput
-              isMobile={isMobile}
-              onSubmit={handleInputSubmit}
-              shake={shake}
-            />
+            {phase === 'complete' ? (
+              <Button
+                onClick={() => setShowRestart(true)}
+                className="w-full px-8 py-2.5 rounded-lg bg-accent hover:bg-accent-light font-medium transition-all"
+              >
+                Play Again
+              </Button>
+            ) : (
+              <GameInput
+                isMobile={isMobile}
+                onSubmit={handleInputSubmit}
+                shake={shake}
+              />
+            )}
           </div>
         </div>
       )}
