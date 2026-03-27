@@ -30,7 +30,7 @@ export function GameInput({ isMobile, onSubmit, shake }: GameInputProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md flex gap-2">
+    <form onSubmit={handleSubmit} className="w-full max-w-lg flex gap-2">
       <div className="relative flex-1">
         <Input
           ref={inputRef}
@@ -44,15 +44,15 @@ export function GameInput({ isMobile, onSubmit, shake }: GameInputProps) {
           autoCapitalize="off"
           spellCheck={false}
           className={shake 
-            ? 'border-[#ef4444] animate-shake placeholder:text-[#a1a1aa] h-10' 
-            : 'border-[#27272a] focus:border-[#ef4444] focus:ring-0 focus:outline-none placeholder:text-[#a1a1aa] h-10'
+            ? 'border-accent animate-shake placeholder:text-foreground-muted h-11' 
+            : 'border-border focus:border-accent focus:ring-0 focus:outline-none placeholder:text-foreground-muted h-11'
           }
         />
         {value && !isMobile && (
           <button
             type="button"
             onClick={() => setValue('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#52525b] hover:text-[#a1a1aa] transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-subtle hover:text-foreground-muted transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -63,7 +63,7 @@ export function GameInput({ isMobile, onSubmit, shake }: GameInputProps) {
       </div>
       <Button
         type="submit"
-        className="px-5 py-2.5 rounded-xl bg-[#ef4444] hover:bg-[#f87171] text-sm font-semibold transition-all shrink-0 h-10"
+        className="px-5 py-2.5 rounded-lg bg-accent hover:bg-accent-light text-sm font-medium text-foreground transition-all shrink-0 h-11"
       >
         Guess
       </Button>
