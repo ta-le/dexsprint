@@ -67,10 +67,23 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, ge
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [flash]);
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !isMobile) return;
+    const ro = new ResizeObserver(() => {
+      const maxScroll = el.scrollHeight - el.clientHeight;
+      if (el.scrollTop > maxScroll) {
+        el.scrollTop = maxScroll;
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isMobile]);
+
   const rows = Math.ceil(activePokemon.length / cols);
 
   return (
-    <div ref={containerRef} className="w-full h-full overflow-y-auto">
+    <div ref={containerRef} className="w-full h-full overflow-y-auto" style={{ overscrollBehavior: 'none' }}>
       <div
         className="grid w-full"
         style={isMobile

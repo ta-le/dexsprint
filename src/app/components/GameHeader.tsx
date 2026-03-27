@@ -14,7 +14,7 @@ export function GameHeader({ guessedCount, totalCount, elapsed, language, onMenu
   return (
     <header className="flex items-center justify-between px-5 sm:px-7 py-4 bg-surface-elevated/80 backdrop-blur-sm border-b border-border-subtle">
       <div className="flex items-center gap-5 sm:gap-8">
-        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight flex items-center gap-2">
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight flex items-center">
           <span className="text-accent">Dex</span>
           <span className="text-foreground/85">Sprint</span>
         </h1>
