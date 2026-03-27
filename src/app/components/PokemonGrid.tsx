@@ -102,7 +102,7 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
     <div
       data-pokemon-id={pokemon.id}
       style={{ containerType: 'inline-size' }}
-      className={`relative min-h-0 transition-all duration-300 ${isFlashing ? 'animate-reveal -m-px p-px bg-gradient-to-br from-[#ef4444]/30 to-[#ef4444]/10 shadow-[0_0_12px_rgba(239,68,68,0.5)]' : 'bg-[#141416]'}`}
+      className={`relative min-h-0 transition-all duration-300 ${isFlashing ? 'animate-reveal -m-px p-px bg-gradient-to-br from-[#eab308]/40 to-[#eab308]/10 shadow-[0_0_4px_rgba(234,179,8,0.5)]' : 'bg-[#141416]'}`}
     >
       <img
         src={getSpriteUrl(pokemon.id)}
@@ -113,7 +113,7 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
       />
       {showDetail && (
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0c0c0e] via-[#0c0c0e]/80 to-transparent flex flex-col items-center px-0.5 pt-4 pb-1.5">
-          <span style={{ fontSize: 'clamp(5px, 12cqi, 9px)' }} className="text-[#52525b] leading-none font-mono">
+          <span style={{ fontSize: 'clamp(5px, 12cqi, 9px)' }} className="text-[#a1a1aa] leading-none font-mono">
             #{String(pokemon.id).padStart(3, '0')}
           </span>
           <span style={{ fontSize: 'clamp(6px, 14cqi, 11px)' }} className="font-medium leading-tight text-center truncate w-full text-[#fafafa]">

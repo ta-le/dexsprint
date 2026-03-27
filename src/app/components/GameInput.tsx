@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 
 interface GameInputProps {
   isMobile: boolean;
-  onSubmit: (value: string) => void;
+  onSubmit: (value: string) => boolean;
   shake: boolean;
 }
 
@@ -23,8 +23,10 @@ export function GameInput({ isMobile, onSubmit, shake }: GameInputProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (value.trim().length < 2) return;
-    onSubmit(value);
-    setValue('');
+    const success = onSubmit(value);
+    if (success) {
+      setValue('');
+    }
   };
 
   return (
@@ -42,8 +44,8 @@ export function GameInput({ isMobile, onSubmit, shake }: GameInputProps) {
           autoCapitalize="off"
           spellCheck={false}
           className={shake 
-            ? 'border-[#ef4444] animate-shake' 
-            : 'border-[#27272a] focus:border-[#ef4444]/50 focus:ring-2 focus:ring-[#ef4444]/10 focus:outline-none'
+            ? 'border-[#ef4444] animate-shake placeholder:text-[#a1a1aa] h-10' 
+            : 'border-[#27272a] focus:border-[#ef4444] focus:ring-0 focus:outline-none placeholder:text-[#a1a1aa] h-10'
           }
         />
         {value && !isMobile && (
@@ -61,7 +63,7 @@ export function GameInput({ isMobile, onSubmit, shake }: GameInputProps) {
       </div>
       <Button
         type="submit"
-        className="px-5 py-2.5 rounded-xl bg-[#ef4444] hover:bg-[#f87171] text-sm font-semibold transition-all shrink-0"
+        className="px-5 py-2.5 rounded-xl bg-[#ef4444] hover:bg-[#f87171] text-sm font-semibold transition-all shrink-0 h-10"
       >
         Guess
       </Button>

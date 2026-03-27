@@ -162,8 +162,8 @@ export default function Game() {
     setPhase('language');
   }, []);
 
-  const handleInputSubmit = useCallback((input: string) => {
-    if (input.trim().length < 2) return;
+  const handleInputSubmit = useCallback((input: string): boolean => {
+    if (input.trim().length < 2) return false;
 
     const matches: { pokemon: Pokemon; dist: number }[] = [];
     for (const pokemon of POKEMON) {
@@ -194,7 +194,7 @@ export default function Game() {
         setElapsed(elapsedBeforePause + (Date.now() - startTime));
         setPhase('complete');
       }
-      return;
+      return true;
     }
 
     for (const pokemon of POKEMON) {
@@ -204,11 +204,12 @@ export default function Game() {
         const name = pokemon.names[language] || pokemon.names.en;
         setToast(`Already found: ${name}!`);
         setTimeout(() => setToast(null), 2500);
-        return;
+        return true;
       }
     }
     setShake(true);
     setTimeout(() => setShake(false), 500);
+    return false;
   }, [guessed, language, elapsedBeforePause, startTime]);
 
   const [showMenu, setShowMenu] = useState(false);
