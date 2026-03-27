@@ -31,7 +31,7 @@ export function GameHeader({ guessedCount, totalCount, elapsed, language, onMenu
             {formatTime(elapsed)}
           </div>
           {/* Language */}
-          <span className="hidden sm:inline-flex text-[10px] font-mono uppercase tracking-widest text-foreground-muted bg-surface/30 px-2.5 py-1 rounded">
+          <span className="hidden sm:inline-flex text-[12px] font-mono uppercase tracking-widest text-foreground-muted bg-surface/30 px-2.5 py-1 rounded">
             {language}
           </span>
         </div>

@@ -106,9 +106,6 @@ export default function Game() {
     return window.matchMedia('(max-width: 767px)').matches;
   });
   const [mobileH, setMobileH] = useState(0);
-  const zoom = useZoomLevel();
-
-  const showDetail = zoom >= 1.8 || forceDetail;
 
   const activePokemon = useMemo(() => {
     return POKEMON.filter(p => {
@@ -349,7 +346,7 @@ export default function Game() {
         <PokemonGrid
           guessed={guessed}
           language={language}
-          showDetail={showDetail}
+          showDetail={forceDetail}
           flash={flash}
           isMobile={isMobile}
           generations={generations}

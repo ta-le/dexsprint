@@ -128,7 +128,7 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
       style={{ containerType: 'inline-size', aspectRatio: '1' }}
       className={`relative transition-all duration-200 
         ${isFlashing 
-          ? 'animate-reveal -m-px p-px bg-gradient-to-br from-accent/15 to-accent/5' 
+          ? 'animate-reveal -m-px p-px bg-gradient-to-br from-amber-500/20 to-amber-400/10' 
           : 'bg-surface hover:bg-surface-hover'
         }`}
     >
@@ -141,10 +141,10 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
       />
       {showDetail && (
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-surface/95 via-surface/95 to-transparent flex flex-col items-center px-1 pt-2.5 pb-1.5">
-          <span style={{ fontSize: 'clamp(8px, 15cqi, 11px)' }} className="text-foreground-subtle leading-none font-mono tracking-tight">
+          <span style={{ fontSize: 'clamp(7px, 14cqi, 10px)' }} className="text-foreground-muted leading-none font-mono tracking-tight">
             #{String(pokemon.id).padStart(3, '0')}
           </span>
-          <span style={{ fontSize: 'clamp(9px, 16cqi, 13px)' }} className="font-medium leading-tight text-center truncate w-full text-foreground">
+          <span style={{ fontSize: 'clamp(8px, 15cqi, 12px)' }} className="font-medium leading-tight text-center truncate w-full text-foreground">
             {name}
           </span>
         </div>
