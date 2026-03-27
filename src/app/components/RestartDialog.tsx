@@ -12,16 +12,16 @@ interface RestartDialogProps {
 export function RestartDialog({ open, onConfirm, onCancel }: RestartDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      <DialogContent className="bg-[#141416] border-[#27272a]">
+      <DialogContent className="bg-surface-elevated border-border">
         <DialogHeader>
-          <DialogTitle className="text-base font-semibold">Restart Game?</DialogTitle>
-          <DialogDescription className="text-[#a1a1aa]">
+          <DialogTitle className="text-lg font-semibold">Restart Game?</DialogTitle>
+          <DialogDescription>
             All progress will be lost.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button variant="default" className="bg-[#ef4444] hover:bg-[#f87171]" onClick={onConfirm}>Restart</Button>
+          <Button variant="destructive" onClick={onConfirm}>Restart</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
