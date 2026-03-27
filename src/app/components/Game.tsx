@@ -87,7 +87,10 @@ export default function Game() {
   const [forceDetail, setForceDetail] = useState<boolean>(() => loadState()?.forceDetail ?? false);
   const headerRef = useRef<HTMLDivElement>(null);
   const [headerH, setHeaderH] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(max-width: 767px)').matches;
+  });
   const [mobileH, setMobileH] = useState(0);
   const zoom = useZoomLevel();
 
@@ -95,7 +98,6 @@ export default function Game() {
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
-    setIsMobile(mq.matches);
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
@@ -104,7 +106,10 @@ export default function Game() {
   useEffect(() => {
     if (!isMobile) return;
     const vv = window.visualViewport;
-    if (!vv) { setMobileH(window.innerHeight); return; }
+    if (!vv) {
+      setTimeout(() => setMobileH(window.innerHeight), 0);
+      return;
+    }
     const update = () => setMobileH(vv.height);
     update();
     vv.addEventListener('resize', update);
