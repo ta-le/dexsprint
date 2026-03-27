@@ -1,7 +1,6 @@
 'use client';
 
 import type { LanguageCode } from '../data/pokemon';
-import { Button } from '@/components/ui/button';
 import { LANGUAGES } from '../data/pokemon';
 
 interface LanguageSelectionProps {
