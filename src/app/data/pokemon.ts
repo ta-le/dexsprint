@@ -16,7 +16,7 @@ export const LANGUAGES = [
 export type LanguageCode = (typeof LANGUAGES)[number]["code"];
 
 export function getSpriteUrl(id: number): string {
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iii/firered-leafgreen/${id}.png`;
+  return `/sprites/${id}.png`;
 }
 
 export const TYPE_COLORS: Record<string, string> = {

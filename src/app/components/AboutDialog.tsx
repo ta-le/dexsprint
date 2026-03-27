@@ -24,7 +24,7 @@ export function AboutDialog({ open, language, onClose }: AboutDialogProps) {
           A speed-naming challenge for the original 151 Pokémon. Zoom in to see detailed info for guessed Pokémon.
         </DialogDescription>
         <p className="text-xs text-[#52525b]">
-          Sprites from Pokémon FireRed & LeafGreen via PokeAPI.
+          Sprites from Pokémon FireRed & LeafGreen.
         </p>
         <p className="text-xs text-[#52525b]">
           Pokémon is © Nintendo / Game Freak / Creatures Inc.
