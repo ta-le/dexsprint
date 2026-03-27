@@ -231,10 +231,10 @@ export default function Game() {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 bg-[#0c0c0e] text-[#fafafa] select-none overflow-hidden"
+      className="fixed top-0 left-0 right-0 bg-background text-foreground select-none overflow-hidden"
       style={isMobile && mobileH ? { height: mobileH } : { bottom: 0 }}
     >
-      <div ref={headerRef} className="fixed top-0 left-0 right-0 z-20 bg-[#141416]/95 backdrop-blur-md border-b border-[#1f1f22]">
+      <div ref={headerRef} className="fixed top-0 left-0 right-0 z-20 bg-surface-elevated/80 backdrop-blur-sm border-b border-border-subtle">
         <GameHeader
           guessedCount={guessed.size}
           elapsed={elapsed}
@@ -243,7 +243,7 @@ export default function Game() {
         />
 
         {!isMobile && (
-          <div className="flex justify-center px-4 py-3 border-t border-[#1f1f22]">
+          <div className="flex justify-center px-5 py-3.5 border-t border-border-subtle bg-surface/30">
             <GameInput
               isMobile={isMobile}
               onSubmit={handleInputSubmit}
@@ -287,7 +287,7 @@ export default function Game() {
 
       {isMobile && (
         <div
-          className="absolute bottom-0 left-0 right-0 z-20 bg-[#141416]/95 backdrop-blur-md border-t border-[#1f1f22]"
+          className="absolute bottom-0 left-0 right-0 z-20 bg-surface-elevated/80 backdrop-blur-sm border-t border-border-subtle"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
           <div className="flex justify-center px-3 py-3">
@@ -301,7 +301,7 @@ export default function Game() {
       )}
 
       {toast && (
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-xl bg-[#141416]/95 backdrop-blur-sm border border-[#27272a] text-sm text-[#fafafa] whitespace-nowrap shadow-xl animate-slide-up">
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-lg bg-surface-elevated/95 backdrop-blur-sm border border-border-subtle text-sm text-foreground whitespace-nowrap shadow-sm animate-slide-up">
           {toast}
         </div>
       )}
