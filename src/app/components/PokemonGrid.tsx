@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import Image from 'next/image';
 import { POKEMON, getGeneration, type Pokemon, type LanguageCode, type GenerationId } from '../data/pokemon';
 
 interface PokemonGridProps {
@@ -42,7 +43,6 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, ge
       const el = containerRef.current;
       if (!el) return;
       const w = el.clientWidth;
-      const h = el.clientHeight;
       if (w === 0) return;
       if (isMobile) {
         const minCellSize = 64;
@@ -79,8 +79,6 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, ge
     ro.observe(el);
     return () => ro.disconnect();
   }, [isMobile]);
-
-  const rows = Math.ceil(activePokemon.length / cols);
 
   return (
     <div ref={containerRef} className="w-full h-full overflow-y-auto" style={{ overscrollBehavior: 'none' }}>
@@ -145,13 +143,17 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
           : 'bg-surface hover:bg-surface-hover'
         }`}
     >
-      <img
-        src={`/sprites/${pokemon.id}.png`}
-        alt={name}
-        className="pixelated absolute inset-[6%] w-[88%] h-[88%] object-contain"
-        loading="lazy"
-        draggable={false}
-      />
+      <div className="absolute inset-[6%]">
+        <Image
+          src={`/sprites/${pokemon.id}.png`}
+          alt={name}
+          fill
+          unoptimized
+          className="pixelated object-contain"
+          draggable={false}
+          sizes="(max-width: 767px) 64px, 96px"
+        />
+      </div>
       {showDetail && (
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-surface/95 via-surface/95 to-transparent flex flex-col items-center px-1 pt-2.5 pb-1.5">
           <span style={{ fontSize: 'clamp(7px, 14cqi, 10px)' }} className="text-foreground-muted leading-none font-mono tracking-tight">
