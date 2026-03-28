@@ -3,7 +3,7 @@ import { Sora, DM_Mono, Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const sora = Sora({
   variable: "--font-sora",
@@ -23,7 +23,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "DexSprint – Name All 151 Pokémon!",
-  description: "A speed-naming challenge for the original 151 Pokémon from Generation I.",
+  description:
+    "A speed-naming challenge for the original 151 Pokémon from Generation I.",
 };
 
 export default function RootLayout({
@@ -34,7 +35,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", sora.variable, dmMono.variable, "font-sans", geist.variable)}
+      className={cn(
+        "h-full",
+        "antialiased",
+        sora.variable,
+        dmMono.variable,
+        "font-sans",
+        geist.variable,
+      )}
     >
       <body className="min-h-full flex flex-col">
         <div className="relative min-h-full bg-background overflow-hidden">

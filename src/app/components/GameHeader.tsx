@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { formatTime } from './game-utils';
+import { formatTime } from "./game-utils";
 
 interface GameHeaderProps {
   guessedCount: number;
@@ -10,7 +10,13 @@ interface GameHeaderProps {
   onMenuClick: () => void;
 }
 
-export function GameHeader({ guessedCount, totalCount, elapsed, language, onMenuClick }: GameHeaderProps) {
+export function GameHeader({
+  guessedCount,
+  totalCount,
+  elapsed,
+  language,
+  onMenuClick,
+}: GameHeaderProps) {
   return (
     <header className="flex items-center justify-between px-5 sm:px-7 py-4 bg-surface-elevated/80 backdrop-blur-sm border-b border-border-subtle">
       <div className="flex items-center gap-5 sm:gap-8">
@@ -41,7 +47,14 @@ export function GameHeader({ guessedCount, totalCount, elapsed, language, onMenu
         className="p-2 rounded-md hover:bg-surface-hover transition-colors text-foreground-muted hover:text-foreground"
         aria-label="Menu"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <line x1="3" y1="6" x2="21" y2="6" />
           <line x1="3" y1="12" x2="21" y2="12" />
           <line x1="3" y1="18" x2="21" y2="18" />

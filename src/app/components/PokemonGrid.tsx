@@ -1,8 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import Image from 'next/image';
-import { POKEMON, getGeneration, type Pokemon, type LanguageCode, type GenerationId } from '../data/pokemon';
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import Image from "next/image";
+import {
+  POKEMON,
+  getGeneration,
+  type Pokemon,
+  type LanguageCode,
+  type GenerationId,
+} from "../data/pokemon";
 
 const GIF_PLAY_DURATION_MS = 1200;
 
@@ -15,12 +21,21 @@ interface PokemonGridProps {
   generations: Set<GenerationId>;
 }
 
-export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, generations }: PokemonGridProps) {
+export function PokemonGrid({
+  guessed,
+  language,
+  showDetail,
+  flash,
+  isMobile,
+  generations,
+}: PokemonGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cols, setCols] = useState(15);
   const [cellSize, setCellSize] = useState(44);
   const [playingIds, setPlayingIds] = useState<Set<number>>(new Set());
-  const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+  const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
   const playCountRef = useRef<Map<number, number>>(new Map());
   const [playCounts, setPlayCounts] = useState<Map<number, number>>(new Map());
 
@@ -29,7 +44,7 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, ge
     const next = prev + 1;
     playCountRef.current.set(id, next);
     setPlayCounts(new Map(playCountRef.current));
-    setPlayingIds(prev => {
+    setPlayingIds((prev) => {
       if (prev.has(id)) return prev;
       const next = new Set(prev);
       next.add(id);
@@ -38,7 +53,7 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, ge
     const existing = timersRef.current.get(id);
     if (existing) clearTimeout(existing);
     const timer = setTimeout(() => {
-      setPlayingIds(prev => {
+      setPlayingIds((prev) => {
         if (!prev.has(id)) return prev;
         const next = new Set(prev);
         next.delete(id);
@@ -52,7 +67,7 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, ge
   useEffect(() => {
     const timers = timersRef.current;
     return () => {
-      timers.forEach(t => clearTimeout(t));
+      timers.forEach((t) => clearTimeout(t));
       timers.clear();
     };
   }, []);
@@ -64,7 +79,7 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, ge
   }, [flash, startPlaying]);
 
   const activePokemon = useMemo(() => {
-    return POKEMON.filter(p => {
+    return POKEMON.filter((p) => {
       const gen = getGeneration(p.id);
       return generations.has(gen);
     });
@@ -102,14 +117,16 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, ge
       }
     }
     calc();
-    window.addEventListener('resize', calc);
-    return () => window.removeEventListener('resize', calc);
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
   }, [isMobile, activePokemon.length]);
 
   useEffect(() => {
     if (flash === null) return;
-    const el = containerRef.current?.querySelector<HTMLElement>(`[data-pokemon-id="${flash}"]`);
-    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const el = containerRef.current?.querySelector<HTMLElement>(
+      `[data-pokemon-id="${flash}"]`,
+    );
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [flash]);
 
   useEffect(() => {
@@ -126,25 +143,38 @@ export function PokemonGrid({ guessed, language, showDetail, flash, isMobile, ge
   }, [isMobile]);
 
   return (
-    <div ref={containerRef} className="w-full h-full overflow-y-auto" style={{ overscrollBehavior: 'none' }}>
+    <div
+      ref={containerRef}
+      className="w-full h-full overflow-y-auto"
+      style={{ overscrollBehavior: "none" }}
+    >
       <div
         className="grid w-full"
-        style={isMobile
-          ? {
-              gridTemplateColumns: `repeat(${cols}, 1fr)`,
-              gridAutoRows: `${cellSize}px`,
-              gap: '1px',
-              paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-            }
-          : {
-              gridAutoRows: `${cellSize}px`,
-              gridTemplateColumns: `repeat(${cols}, 1fr)`,
-              gap: '1px',
-            }
+        style={
+          isMobile
+            ? {
+                gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                gridAutoRows: `${cellSize}px`,
+                gap: "1px",
+                paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))",
+              }
+            : {
+                gridAutoRows: `${cellSize}px`,
+                gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                gap: "1px",
+              }
         }
       >
         {activePokemon.map((pokemon, idx) => (
-          <div key={pokemon.id} style={generationBreaks.includes(idx) ? { borderLeft: '2px solid var(--accent)', marginLeft: '-1px' } : undefined} className="min-h-0">
+          <div
+            key={pokemon.id}
+            style={
+              generationBreaks.includes(idx)
+                ? { borderLeft: "2px solid var(--accent)", marginLeft: "-1px" }
+                : undefined
+            }
+            className="min-h-0"
+          >
             <PokemonCell
               pokemon={pokemon}
               revealed={guessed.has(pokemon.id)}
@@ -173,7 +203,16 @@ interface PokemonCellProps {
   onReplay: () => void;
 }
 
-export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashing, playing, playCount, onReplay }: PokemonCellProps) {
+export function PokemonCell({
+  pokemon,
+  revealed,
+  language,
+  showDetail,
+  isFlashing,
+  playing,
+  playCount,
+  onReplay,
+}: PokemonCellProps) {
   const name = pokemon.names[language] || pokemon.names.en;
   const gifSrc = `/sprites/animated/${pokemon.id}.gif`;
   const blobRef = useRef<Blob | null>(null);
@@ -181,7 +220,11 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
   const [gifUrl, setGifUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(gifSrc).then(r => r.blob()).then(b => { blobRef.current = b; });
+    fetch(gifSrc)
+      .then((r) => r.blob())
+      .then((b) => {
+        blobRef.current = b;
+      });
   }, [gifSrc]);
 
   useEffect(() => {
@@ -194,33 +237,40 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
   }, [playCount]);
 
   useEffect(() => {
-    return () => { if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current); };
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    };
   }, []);
 
   return (
     <div
       data-pokemon-id={pokemon.id}
       onClick={playing ? undefined : onReplay}
-      style={{ containerType: 'inline-size', aspectRatio: '1' }}
+      style={{ containerType: "inline-size", aspectRatio: "1" }}
       className={`relative transition-all duration-200
-        ${isFlashing
-          ? 'animate-reveal -m-px p-px bg-linear-to-br from-amber-500/20 to-amber-400/10'
-          : revealed
-            ? 'bg-surface hover:bg-surface-hover'
-            : 'bg-surface'
+        ${
+          isFlashing
+            ? "animate-reveal -m-px p-px bg-linear-to-br from-amber-500/20 to-amber-400/10"
+            : revealed
+              ? "bg-surface hover:bg-surface-hover"
+              : "bg-surface"
         }
-        ${!revealed ? 'pointer-events-none' : playing ? 'cursor-default' : 'cursor-pointer'}`}
+        ${!revealed ? "pointer-events-none" : playing ? "cursor-default" : "cursor-pointer"}`}
     >
       <div className="absolute inset-[8%]">
         {/* Number text - fades out when revealed */}
-        <div className={`absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-200 ${revealed ? 'opacity-0' : 'opacity-100'}`}>
+        <div
+          className={`absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-200 ${revealed ? "opacity-0" : "opacity-100"}`}
+        >
           <span className="text-foreground-muted text-[10px] select-none font-sans drop-shadow-sm">
-            {String(pokemon.id).padStart(3, '0')}
+            {String(pokemon.id).padStart(3, "0")}
           </span>
         </div>
 
         {/* Static image - always mounted, hidden when GIF showing */}
-        <div className={`absolute inset-0 transition-opacity duration-200 ${revealed && !playing ? 'opacity-100' : 'opacity-0'}`}>
+        <div
+          className={`absolute inset-0 transition-opacity duration-200 ${revealed && !playing ? "opacity-100" : "opacity-0"}`}
+        >
           <Image
             src={`/sprites/${pokemon.id}.png`}
             alt={name}
@@ -234,7 +284,9 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
         </div>
 
         {/* Animated GIF - always mounted, hidden when not playing */}
-        <div className={`absolute inset-0 transition-opacity duration-200 ${playing ? 'opacity-100' : 'opacity-0'}`}>
+        <div
+          className={`absolute inset-0 transition-opacity duration-200 ${playing ? "opacity-100" : "opacity-0"}`}
+        >
           {gifUrl && (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
@@ -244,7 +296,7 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
               loading="eager"
               className="absolute inset-0 w-full h-full pixelated object-contain"
               draggable={false}
-              style={{ transform: 'scale(1.5)' }}
+              style={{ transform: "scale(1.5)" }}
             />
           )}
         </div>
@@ -253,17 +305,22 @@ export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashin
       {showDetail && (
         <>
           <span
-            style={{ fontSize: 'clamp(7px, 13cqi, 10px)' }}
-            className={`absolute top-1 left-1 text-foreground-muted font-sans drop-shadow-sm transition-opacity duration-200 ${revealed ? 'opacity-100' : 'opacity-0'}`}
+            style={{ fontSize: "clamp(7px, 13cqi, 10px)" }}
+            className={`absolute top-1 left-1 text-foreground-muted font-sans drop-shadow-sm transition-opacity duration-200 ${revealed ? "opacity-100" : "opacity-0"}`}
           >
-            {String(pokemon.id).padStart(3, '0')}
+            {String(pokemon.id).padStart(3, "0")}
           </span>
-          <div className={`absolute bottom-0 left-0 right-0 bg-linear-to-t from-surface/85 to-transparent flex flex-col items-center px-0.5 pt-2 pb-1 transition-opacity duration-200 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
-            <span style={{ fontSize: 'clamp(8px, 15cqi, 11px)' }} className="font-sans font-semibold leading-tight text-center truncate w-full text-foreground drop-shadow-sm">
+          <div
+            className={`absolute bottom-0 left-0 right-0 bg-linear-to-t from-surface/85 to-transparent flex flex-col items-center px-0.5 pt-2 pb-1 transition-opacity duration-200 ${revealed ? "opacity-100" : "opacity-0"}`}
+          >
+            <span
+              style={{ fontSize: "clamp(8px, 15cqi, 11px)" }}
+              className="font-sans font-semibold leading-tight text-center truncate w-full text-foreground drop-shadow-sm"
+            >
               {name}
             </span>
           </div>
-</>
+        </>
       )}
     </div>
   );

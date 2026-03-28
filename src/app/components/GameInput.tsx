@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface GameInputProps {
   isMobile: boolean;
@@ -11,7 +11,7 @@ interface GameInputProps {
 }
 
 export function GameInput({ isMobile, onSubmit, shake }: GameInputProps) {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export function GameInput({ isMobile, onSubmit, shake }: GameInputProps) {
     if (value.trim().length < 2) return;
     const success = onSubmit(value);
     if (success) {
-      setValue('');
+      setValue("");
     }
   };
 
@@ -36,25 +36,33 @@ export function GameInput({ isMobile, onSubmit, shake }: GameInputProps) {
           ref={inputRef}
           type="text"
           value={value}
-          onChange={e => setValue(e.target.value)}
+          onChange={(e) => setValue(e.target.value)}
           placeholder={isMobile ? "Enter a name…" : "Enter a Pokémon name…"}
           autoFocus
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}
-          className={shake 
-            ? 'border-accent animate-shake placeholder:text-foreground-muted h-11' 
-            : 'border-border focus:border-accent focus:ring-0 focus:outline-none placeholder:text-foreground-muted h-11'
+          className={
+            shake
+              ? "border-accent animate-shake placeholder:text-foreground-muted h-11"
+              : "border-border focus:border-accent focus:ring-0 focus:outline-none placeholder:text-foreground-muted h-11"
           }
         />
         {value && !isMobile && (
           <button
             type="button"
-            onClick={() => setValue('')}
+            onClick={() => setValue("")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-subtle hover:text-foreground-muted transition-colors"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
