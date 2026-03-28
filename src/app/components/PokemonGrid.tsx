@@ -175,59 +175,90 @@ interface PokemonCellProps {
 
 export function PokemonCell({ pokemon, revealed, language, showDetail, isFlashing, playing, playCount, onReplay }: PokemonCellProps) {
   const name = pokemon.names[language] || pokemon.names.en;
+  const gifSrc = `/sprites/animated/${pokemon.id}.gif`;
+  const blobRef = useRef<Blob | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
+  const [gifUrl, setGifUrl] = useState<string | null>(null);
 
-  if (!revealed) {
-    return (
-      <div className="bg-surface flex items-center justify-center overflow-hidden" style={{ aspectRatio: '1' }}>
-        <span className="text-foreground-muted text-[10px] select-none font-sans drop-shadow-sm">{String(pokemon.id).padStart(3, '0')}</span>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetch(gifSrc).then(r => r.blob()).then(b => { blobRef.current = b; });
+  }, [gifSrc]);
+
+  useEffect(() => {
+    if (playCount > 0 && blobRef.current) {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+      const url = URL.createObjectURL(blobRef.current);
+      blobUrlRef.current = url;
+      setGifUrl(url);
+    }
+  }, [playCount]);
+
+  useEffect(() => {
+    return () => { if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current); };
+  }, []);
 
   return (
     <div
       data-pokemon-id={pokemon.id}
       onClick={playing ? undefined : onReplay}
       style={{ containerType: 'inline-size', aspectRatio: '1' }}
-      className={`relative transition-all duration-200 
-        ${isFlashing 
-          ? 'animate-reveal -m-px p-px bg-linear-to-br from-amber-500/20 to-amber-400/10' 
-          : 'bg-surface hover:bg-surface-hover'
+      className={`relative transition-all duration-200
+        ${isFlashing
+          ? 'animate-reveal -m-px p-px bg-linear-to-br from-amber-500/20 to-amber-400/10'
+          : revealed
+            ? 'bg-surface hover:bg-surface-hover'
+            : 'bg-surface'
         }
-        ${playing ? 'cursor-default' : 'cursor-pointer'}`}
+        ${!revealed ? 'pointer-events-none' : playing ? 'cursor-default' : 'cursor-pointer'}`}
     >
       <div className="absolute inset-[8%]">
-        {playing ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            key={`gif-${playCount}`}
-            src={`/sprites/animated/${pokemon.id}.gif`}
-            alt={name}
-            className="pixelated object-contain w-full h-full"
-            draggable={false}
-            style={{ transform: 'scale(1.5)' }}
-          />
-        ) : (
+        {/* Number text - fades out when revealed */}
+        <div className={`absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-200 ${revealed ? 'opacity-0' : 'opacity-100'}`}>
+          <span className="text-foreground-muted text-[10px] select-none font-sans drop-shadow-sm">
+            {String(pokemon.id).padStart(3, '0')}
+          </span>
+        </div>
+
+        {/* Static image - always mounted, hidden when GIF showing */}
+        <div className={`absolute inset-0 transition-opacity duration-200 ${revealed && !playing ? 'opacity-100' : 'opacity-0'}`}>
           <Image
             src={`/sprites/${pokemon.id}.png`}
             alt={name}
             fill
             unoptimized
+            loading="eager"
             className="pixelated object-contain"
             draggable={false}
             sizes="(max-width: 767px) 64px, 96px"
           />
-        )}
+        </div>
+
+        {/* Animated GIF - always mounted, hidden when not playing */}
+        <div className={`absolute inset-0 transition-opacity duration-200 ${playing ? 'opacity-100' : 'opacity-0'}`}>
+          {gifUrl && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              key={`gif-${playCount}`}
+              src={gifUrl}
+              alt={name}
+              loading="eager"
+              className="absolute inset-0 w-full h-full pixelated object-contain"
+              draggable={false}
+              style={{ transform: 'scale(1.5)' }}
+            />
+          )}
+        </div>
       </div>
+
       {showDetail && (
         <>
           <span
             style={{ fontSize: 'clamp(7px, 13cqi, 10px)' }}
-            className="absolute top-1 left-1 text-foreground-muted font-sans drop-shadow-sm"
+            className={`absolute top-1 left-1 text-foreground-muted font-sans drop-shadow-sm transition-opacity duration-200 ${revealed ? 'opacity-100' : 'opacity-0'}`}
           >
             {String(pokemon.id).padStart(3, '0')}
           </span>
-          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-surface/85 to-transparent flex flex-col items-center px-0.5 pt-2 pb-1">
+          <div className={`absolute bottom-0 left-0 right-0 bg-linear-to-t from-surface/85 to-transparent flex flex-col items-center px-0.5 pt-2 pb-1 transition-opacity duration-200 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
             <span style={{ fontSize: 'clamp(8px, 15cqi, 11px)' }} className="font-sans font-semibold leading-tight text-center truncate w-full text-foreground drop-shadow-sm">
               {name}
             </span>

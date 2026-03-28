@@ -13,7 +13,7 @@ When git committing, use only a short summary in the conventional commits standa
 For UI changes: 
 - Always use the chrome-devtools MCP to record the baseline before changing things. After finishing changes, verify them using chrome-devtools MCP. 
 - Click around to verify interactive elements or UX changes.
-- Validate using typescript check and eslint. Use prettier to format before finishing changes.
+- Validate using typescript check and eslint. 
 
 # Design
 
@@ -24,3 +24,4 @@ For UI changes:
 # Code
 
 - Avoid excessive prop drilling.
+- Use prettier to format before finishing changes.
