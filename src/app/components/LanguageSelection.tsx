@@ -44,7 +44,7 @@ export function LanguageSelection({
   const canStart = selectedLang !== null && selectedGens.size > 0;
 
   return (
-    <div className="flex flex-col items-center sm:justify-center min-h-dvh bg-background text-foreground p-6 py-12 sm:py-6 overflow-auto">
+    <div className="flex flex-col items-center sm:justify-center h-dvh bg-background text-foreground p-6 py-12 sm:py-6 overflow-y-auto">
       <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight mb-2">
         <span className="text-accent">Dex</span>
         <span className="text-foreground/70">Sprint</span>

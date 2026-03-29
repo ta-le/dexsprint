@@ -327,12 +327,20 @@ export default function Game() {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 bg-background text-foreground select-none overflow-hidden"
-      style={isMobile && mobileH ? { height: mobileH } : { bottom: 0 }}
+      className="fixed left-0 right-0 bg-background text-foreground select-none overflow-hidden"
+      style={{
+        touchAction: "none",
+        overscrollBehavior: "none",
+        ...(isMobile
+          ? mobileH
+            ? { bottom: 0, height: mobileH }
+            : { bottom: 0 }
+          : { top: 0, bottom: 0 }),
+      }}
     >
       <div
         ref={headerRef}
-        className="fixed top-0 left-0 right-0 z-20 bg-surface-elevated/80 backdrop-blur-sm border-b border-border-subtle"
+        className="absolute top-0 left-0 right-0 z-20 bg-surface-elevated/80 backdrop-blur-sm border-b border-border-subtle"
       >
         <GameHeader
           guessedCount={guessed.size}

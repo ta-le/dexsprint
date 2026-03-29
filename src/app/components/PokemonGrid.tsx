@@ -146,7 +146,7 @@ export function PokemonGrid({
     <div
       ref={containerRef}
       className="w-full h-full overflow-y-auto"
-      style={{ overscrollBehavior: "none" }}
+      style={{ overscrollBehavior: "none", touchAction: "auto" }}
     >
       <div
         className="grid w-full"
