@@ -214,7 +214,8 @@ export function PokemonCell({
   onReplay,
 }: PokemonCellProps) {
   const name = pokemon.names[language] || pokemon.names.en;
-  const gifSrc = `/sprites/animated/${pokemon.id}.gif`;
+  const spriteId = pokemon.id === 201 ? "201-t" : String(pokemon.id);
+  const gifSrc = `/sprites/animated/${spriteId}.gif`;
   const blobRef = useRef<Blob | null>(null);
   const blobUrlRef = useRef<string | null>(null);
   const [gifUrl, setGifUrl] = useState<string | null>(null);
@@ -272,7 +273,7 @@ export function PokemonCell({
           className={`absolute inset-0 transition-opacity duration-200 ${revealed && !playing ? "opacity-100" : "opacity-0"}`}
         >
           <Image
-            src={`/sprites/${pokemon.id}.png`}
+            src={`/sprites/${spriteId}.png`}
             alt={name}
             fill
             unoptimized
