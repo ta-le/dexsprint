@@ -34,6 +34,7 @@ export function PokemonGrid({
   const containerRef = useRef<HTMLDivElement>(null);
   const [cols, setCols] = useState(15);
   const [cellSize, setCellSize] = useState(44);
+  const [gridFits, setGridFits] = useState(false);
   const [playingIds, setPlayingIds] = useState<Set<number>>(new Set());
   const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(
     new Map(),
@@ -131,12 +132,14 @@ export function PokemonGrid({
         setCols(c);
         setCellSize(w / c);
       } else {
+        const minCellSize = 96;
         const maxCellSize = 128;
         const itemCount = activePokemon.length;
         const gaps = 1;
+        const maxCols = Math.floor((w + gaps) / (minCellSize + gaps));
         let bestSize = 0;
-        let bestCols = Math.max(5, Math.floor(w / 96));
-        for (let c = 5; c <= itemCount; c++) {
+        let bestCols = Math.max(5, maxCols);
+        for (let c = 5; c <= Math.min(maxCols, itemCount); c++) {
           const r = Math.ceil(itemCount / c);
           const size = Math.min(
             (w - (c - 1) * gaps) / c,
@@ -147,8 +150,13 @@ export function PokemonGrid({
             bestCols = c;
           }
         }
+        const size = Math.max(bestSize, minCellSize);
+        const finalCellSize = Math.min(size, maxCellSize);
         setCols(bestCols);
-        setCellSize(Math.min(bestSize, maxCellSize));
+        setCellSize(finalCellSize);
+        const rows = Math.ceil(itemCount / bestCols);
+        const gridH = rows * finalCellSize + (rows - 1) * gaps;
+        setGridFits(gridH <= h);
       }
     }
     calc();
@@ -181,7 +189,7 @@ export function PokemonGrid({
   return (
     <div
       ref={containerRef}
-      className={`w-full h-full ${isMobile ? "overflow-y-auto" : "overflow-hidden flex items-center justify-center"}`}
+      className={`w-full h-full overflow-y-auto overflow-x-hidden${!isMobile ? " flex justify-center" : ""}${!isMobile && gridFits ? " items-center" : ""}`}
       style={{ overscrollBehavior: "none", touchAction: "auto" }}
     >
       <div
