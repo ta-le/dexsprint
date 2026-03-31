@@ -121,22 +121,38 @@ export function PokemonGrid({
       const el = containerRef.current;
       if (!el) return;
       const w = el.clientWidth;
-      if (w === 0) return;
+      const h = el.clientHeight;
+      if (w === 0 || h === 0) return;
       if (isMobile) {
         const minCellSize = 64;
         const c = Math.max(5, Math.floor(w / minCellSize));
         setCols(c);
         setCellSize(w / c);
       } else {
-        const minCellSize = 96;
-        const c = Math.max(5, Math.floor(w / minCellSize));
-        setCols(c);
-        setCellSize(w / c);
+        const maxCellSize = 128;
+        const itemCount = activePokemon.length;
+        const gaps = 1;
+        let bestSize = 0;
+        let bestCols = Math.max(5, Math.floor(w / 96));
+        for (let c = 5; c <= itemCount; c++) {
+          const r = Math.ceil(itemCount / c);
+          const size = Math.min(
+            (w - (c - 1) * gaps) / c,
+            (h - (r - 1) * gaps) / r,
+          );
+          if (size > bestSize) {
+            bestSize = size;
+            bestCols = c;
+          }
+        }
+        setCols(bestCols);
+        setCellSize(Math.min(bestSize, maxCellSize));
       }
     }
     calc();
-    window.addEventListener("resize", calc);
-    return () => window.removeEventListener("resize", calc);
+    const ro = new ResizeObserver(calc);
+    ro.observe(containerRef.current!);
+    return () => ro.disconnect();
   }, [isMobile, activePokemon.length]);
 
   useEffect(() => {
@@ -163,22 +179,23 @@ export function PokemonGrid({
   return (
     <div
       ref={containerRef}
-      className="w-full h-full overflow-y-auto"
+      className={`w-full h-full ${isMobile ? "overflow-y-auto" : "overflow-hidden flex items-center justify-center"}`}
       style={{ overscrollBehavior: "none", touchAction: "auto" }}
     >
       <div
-        className="grid w-full"
+        className="grid"
         style={
           isMobile
             ? {
+                width: "100%",
                 gridTemplateColumns: `repeat(${cols}, 1fr)`,
                 gridAutoRows: `${cellSize}px`,
                 gap: "1px",
                 paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))",
               }
             : {
+                gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
                 gridAutoRows: `${cellSize}px`,
-                gridTemplateColumns: `repeat(${cols}, 1fr)`,
                 gap: "1px",
               }
         }
