@@ -108,6 +108,9 @@ export default function Game() {
   const [forceDetail, setForceDetail] = useState(
     () => loadState()?.forceDetail ?? false,
   );
+  const [soundEnabled, setSoundEnabled] = useState(
+    () => loadState()?.soundEnabled ?? true,
+  );
   const [showCompletionDialog, setShowCompletionDialog] = useState(
     phase === "complete",
   );
@@ -177,8 +180,17 @@ export default function Game() {
       guessed: Array.from(guessed),
       startTime,
       forceDetail,
+      soundEnabled,
     });
-  }, [guessed, language, phase, startTime, forceDetail, generations]);
+  }, [
+    guessed,
+    language,
+    phase,
+    startTime,
+    forceDetail,
+    generations,
+    soundEnabled,
+  ]);
 
   const startGame = useCallback(
     (lang: LanguageCode, gens: Set<GenerationId>) => {
@@ -348,6 +360,8 @@ export default function Game() {
         <GameMenu
           forceDetail={forceDetail}
           onToggleDetail={() => setForceDetail((v) => !v)}
+          soundEnabled={soundEnabled}
+          onToggleSound={() => setSoundEnabled((v) => !v)}
           onRestartClick={() => setShowRestart(true)}
           onAboutClick={() => {
             setShowMenu(false);
@@ -393,6 +407,7 @@ export default function Game() {
           flash={flash}
           isMobile={isMobile}
           generations={generations}
+          soundEnabled={soundEnabled}
         />
       </div>
 

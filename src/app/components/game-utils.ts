@@ -59,6 +59,7 @@ export interface GameState {
   guessed: number[];
   startTime: number;
   forceDetail?: boolean;
+  soundEnabled?: boolean;
 }
 
 const STORAGE_KEY = "dexsprint_state";

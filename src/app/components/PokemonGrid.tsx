@@ -19,6 +19,7 @@ interface PokemonGridProps {
   flash: number | null;
   isMobile: boolean;
   generations: Set<GenerationId>;
+  soundEnabled: boolean;
 }
 
 export function PokemonGrid({
@@ -28,6 +29,7 @@ export function PokemonGrid({
   flash,
   isMobile,
   generations,
+  soundEnabled,
 }: PokemonGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cols, setCols] = useState(15);
@@ -92,9 +94,9 @@ export function PokemonGrid({
   useEffect(() => {
     if (flash !== null) {
       startPlaying(flash);
-      playCry(flash);
+      if (soundEnabled) playCry(flash);
     }
-  }, [flash, startPlaying, playCry]);
+  }, [flash, startPlaying, playCry, soundEnabled]);
 
   const activePokemon = useMemo(() => {
     return POKEMON.filter((p) => {
@@ -220,7 +222,7 @@ export function PokemonGrid({
               playCount={playCounts.get(pokemon.id) ?? 0}
               onReplay={() => {
                 startPlaying(pokemon.id);
-                playCry(pokemon.id);
+                if (soundEnabled) playCry(pokemon.id);
               }}
             />
           </div>

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 interface GameMenuProps {
   forceDetail: boolean;
   onToggleDetail: () => void;
+  soundEnabled: boolean;
+  onToggleSound: () => void;
   onRestartClick: () => void;
   onAboutClick: () => void;
   onClose: () => void;
@@ -14,6 +16,8 @@ interface GameMenuProps {
 export function GameMenu({
   forceDetail,
   onToggleDetail,
+  soundEnabled,
+  onToggleSound,
   onRestartClick,
   onAboutClick,
   onClose,
@@ -35,6 +39,17 @@ export function GameMenu({
           <Switch
             checked={forceDetail}
             onCheckedChange={onToggleDetail}
+            className="data-checked:bg-accent data-unchecked:bg-foreground-dim"
+          />
+        </button>
+        <button
+          onClick={onToggleSound}
+          className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between gap-3"
+        >
+          <span className="text-foreground-muted">Play Pokemon cries</span>
+          <Switch
+            checked={soundEnabled}
+            onCheckedChange={onToggleSound}
             className="data-checked:bg-accent data-unchecked:bg-foreground-dim"
           />
         </button>
