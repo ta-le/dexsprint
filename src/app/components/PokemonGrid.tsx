@@ -38,6 +38,7 @@ export function PokemonGrid({
   );
   const playCountRef = useRef<Map<number, number>>(new Map());
   const [playCounts, setPlayCounts] = useState<Map<number, number>>(new Map());
+  const criesRef = useRef<HTMLAudioElement[]>([]);
 
   const startPlaying = useCallback((id: number) => {
     const prev = playCountRef.current.get(id) ?? 0;
@@ -64,19 +65,36 @@ export function PokemonGrid({
     timersRef.current.set(id, timer);
   }, []);
 
+  const playCry = useCallback((id: number) => {
+    const audio = new Audio(`/cries/old/${id}.ogg`);
+    audio.volume = 0.4;
+    criesRef.current.push(audio);
+    const cleanup = () => {
+      const idx = criesRef.current.indexOf(audio);
+      if (idx !== -1) criesRef.current.splice(idx, 1);
+    };
+    audio.addEventListener("ended", cleanup);
+    audio.addEventListener("error", cleanup);
+    audio.play().catch(() => {});
+  }, []);
+
   useEffect(() => {
     const timers = timersRef.current;
+    const cries = criesRef.current;
     return () => {
       timers.forEach((t) => clearTimeout(t));
       timers.clear();
+      cries.forEach((a) => a.pause());
+      cries.length = 0;
     };
   }, []);
 
   useEffect(() => {
     if (flash !== null) {
       startPlaying(flash);
+      playCry(flash);
     }
-  }, [flash, startPlaying]);
+  }, [flash, startPlaying, playCry]);
 
   const activePokemon = useMemo(() => {
     return POKEMON.filter((p) => {
@@ -183,7 +201,10 @@ export function PokemonGrid({
               isFlashing={flash === pokemon.id}
               playing={playingIds.has(pokemon.id)}
               playCount={playCounts.get(pokemon.id) ?? 0}
-              onReplay={() => startPlaying(pokemon.id)}
+              onReplay={() => {
+                startPlaying(pokemon.id);
+                playCry(pokemon.id);
+              }}
             />
           </div>
         ))}
