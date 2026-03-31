@@ -91,19 +91,16 @@ export default function Game() {
     const saved = loadState();
     return saved && saved.startTime > 0 ? saved.startTime : 0;
   });
-  const [elapsedBeforePause, setElapsedBeforePause] = useState(
-    () => loadState()?.elapsedBeforePause ?? 0,
-  );
   const [elapsed, setElapsed] = useState(() => {
     const saved = loadState();
+    if (!saved || saved.startTime <= 0) return 0;
     const savedTotal =
-      saved?.generations?.reduce((sum, genId) => {
+      saved.generations?.reduce((sum, genId) => {
         const gen = GENERATIONS.find((g) => g.id === genId);
         return sum + (gen ? gen.endId - gen.startId + 1 : 0);
       }, 0) ?? 151;
-    return saved && saved.guessed.length >= savedTotal
-      ? saved.elapsedBeforePause
-      : 0;
+    if (saved.guessed.length >= savedTotal) return Date.now() - saved.startTime;
+    return 0;
   });
   const [flash, setFlash] = useState<number | null>(null);
   const [shake, setShake] = useState(false);
@@ -167,35 +164,21 @@ export default function Game() {
   useEffect(() => {
     if (phase !== "playing") return;
     const id = setInterval(() => {
-      setElapsed(elapsedBeforePause + (Date.now() - startTime));
+      setElapsed(Date.now() - startTime);
     }, 200);
     return () => clearInterval(id);
-  }, [phase, startTime, elapsedBeforePause]);
+  }, [phase, startTime]);
 
   useEffect(() => {
     if (phase === "language") return;
-    const currentElapsed =
-      phase === "playing"
-        ? elapsedBeforePause + (Date.now() - startTime)
-        : elapsed;
     saveState({
       language,
       generations: Array.from(generations),
       guessed: Array.from(guessed),
       startTime,
-      elapsedBeforePause: currentElapsed,
       forceDetail,
     });
-  }, [
-    guessed,
-    language,
-    phase,
-    startTime,
-    elapsedBeforePause,
-    elapsed,
-    forceDetail,
-    generations,
-  ]);
+  }, [guessed, language, phase, startTime, forceDetail, generations]);
 
   const startGame = useCallback(
     (lang: LanguageCode, gens: Set<GenerationId>) => {
@@ -203,7 +186,6 @@ export default function Game() {
       setGenerations(gens);
       setGuessed(new Set());
       setStartTime(Date.now());
-      setElapsedBeforePause(0);
       setElapsed(0);
       setPhase("playing");
       setShowCompletionDialog(false);
@@ -235,7 +217,6 @@ export default function Game() {
     clearState();
     setGuessed(new Set());
     setStartTime(0);
-    setElapsedBeforePause(0);
     setElapsed(0);
     setShowRestart(false);
     setShowMenu(false);
@@ -279,7 +260,7 @@ export default function Game() {
         setFlash(chosen.id);
         setTimeout(() => setFlash(null), 1200);
         if (newGuessed.size === totalPokemon) {
-          setElapsed(elapsedBeforePause + (Date.now() - startTime));
+          setElapsed(Date.now() - startTime);
           setPhase("complete");
           setShowCompletionDialog(true);
         }
@@ -300,14 +281,7 @@ export default function Game() {
       setTimeout(() => setShake(false), 500);
       return false;
     },
-    [
-      guessed,
-      language,
-      activePokemon,
-      totalPokemon,
-      elapsedBeforePause,
-      startTime,
-    ],
+    [guessed, language, activePokemon, totalPokemon, startTime],
   );
 
   const [showMenu, setShowMenu] = useState(false);

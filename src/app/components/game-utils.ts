@@ -58,7 +58,6 @@ export interface GameState {
   generations: GenerationId[];
   guessed: number[];
   startTime: number;
-  elapsedBeforePause: number;
   forceDetail?: boolean;
 }
 
