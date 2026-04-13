@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Sora, DM_Mono, Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Analytics } from "@vercel/analytics/react";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -52,6 +53,7 @@ export default function RootLayout({
           </div>
           {children}
         </div>
+        <Analytics />
       </body>
     </html>
   );
